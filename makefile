@@ -1,0 +1,60 @@
+# cheeseDOS - My x86 DOS
+# Copyright (C) 2025  Connor Thomson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+CC = gcc
+AS = as
+LD = ld
+CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra
+LDFLAGS = -m elf_i386 -T link.ld
+KERNEL = kernel.elf
+ISO = cheeseos.iso
+ISO_DIR = iso
+BOOT_DIR = $(ISO_DIR)/boot
+GRUB_DIR = $(BOOT_DIR)/grub
+GRUB_CFG = $(GRUB_DIR)/grub.cfg
+OBJS = boot.o kernel.o shell.o vga.o keyboard.o
+
+all: $(ISO)
+
+boot.o: boot.S
+	$(AS) --32 -o $@ $<
+
+kernel.o: kernel.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+shell.o: shell.c shell.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+vga.o: vga.c vga.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+keyboard.o: keyboard.c keyboard.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(KERNEL): $(OBJS) link.ld
+	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+
+$(ISO): $(KERNEL)
+	cp $(KERNEL) $(BOOT_DIR)/
+	grub-mkrescue -o $@ $(ISO_DIR)
+
+run: $(ISO)
+	qemu-system-i386 $<
+
+clean:
+	rm -rf *.o *.elf *.iso
+
+.PHONY: all clean run
