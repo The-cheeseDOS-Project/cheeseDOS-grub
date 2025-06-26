@@ -115,9 +115,9 @@ static void load_history_line(char *input, int *idx, int *cursor_index, int pos)
 void shell_execute(const char* cmd) {
     if (cmd[0] == '\0') return;
     if (strcmp(cmd, "help") == 0) {
-        print("Commands: help, clear, echo, uname, hello.\n");
+        print("Commands: help, clear, print, version, hello.\n");
     }
-    else if (strcmp(cmd, "uname") == 0) {
+    else if (strcmp(cmd, "version") == 0) {
         print("cheeseDOS alpha\n");
     }
     else if (strcmp(cmd, "hello") == 0) {
@@ -126,7 +126,7 @@ void shell_execute(const char* cmd) {
     else if (strcmp(cmd, "clear") == 0) {
         clear_screen();
     }
-    else if (strncmp(cmd, "echo ", 5) == 0) {
+    else if (strncmp(cmd, "print ", 5) == 0) {
         print(cmd + 5);
         print("\n");
     }
