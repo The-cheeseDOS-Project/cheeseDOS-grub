@@ -8,14 +8,14 @@
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even even implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
- 
+
 #include "shell.h"
 #include "vga.h"
 #include "keyboard.h"
@@ -24,6 +24,9 @@
 #include "string.h"
 #include <stddef.h>
 #include <stdint.h>
+
+void putchar(char c);
+int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer);
 
 #define INPUT_BUF_SIZE 256
 #define HISTORY_SIZE 32
@@ -173,15 +176,86 @@ void shell_execute(const char* cmd) {
         print("\n");
     } else if (kstrncmp(command, "add", 3) == 0) {
         if (!args) {
-            print("Usage: add <filename>\n");
+            print("Usage: add <filename> \"text to add\"\n");
             return;
         }
-        int res = ramdisk_create_file(current_dir_inode_no, args);
-        if (res == 0) {
-            print("File created\n");
-        } else {
-            print("Failed to create file\n");
+        const char *space_pos = kstrchr(args, ' ');
+        if (!space_pos) {
+            int res = ramdisk_create_file(current_dir_inode_no, args);
+            if (res == 0) {
+                print("File created\n");
+            } else {
+                print("Failed to create file\n");
+            }
+            return;
         }
+        size_t filename_len = (size_t)(space_pos - args);
+        char filename[INPUT_BUF_SIZE];
+        if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
+        kstrncpy(filename, args, filename_len);
+        filename[filename_len] = '\0';
+
+        const char *text_start = space_pos + 1;
+        char text[INPUT_BUF_SIZE];
+        size_t text_len = kstrlen(text_start);
+        if (text_start[0] == '"' && text_start[text_len - 1] == '"') {
+            kstrncpy(text, text_start + 1, text_len - 2);
+            text[text_len - 2] = '\0';
+        } else {
+            kstrncpy(text, text_start, INPUT_BUF_SIZE - 1);
+            text[INPUT_BUF_SIZE - 1] = '\0';
+        }
+
+        ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
+        if (!dir) {
+            print("Failed to get current directory\n");
+            return;
+        }
+        ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
+        if (!file) {
+            int res = ramdisk_create_file(current_dir_inode_no, filename);
+            if (res != 0) {
+                print("Failed to create file\n");
+                return;
+            }
+            file = ramdisk_find_inode_by_name(dir, filename);
+            if (!file) {
+                print("File creation error\n");
+                return;
+            }
+        }
+
+        char old_content[1024];
+        int old_len = ramdisk_readfile(file, 0, sizeof(old_content) - 1, old_content);
+        if (old_len < 0) old_len = 0;
+        old_content[old_len] = '\0';
+
+        char new_content[2048];
+        kstrncpy(new_content, old_content, sizeof(new_content) - 1);
+        size_t new_len = kstrlen(new_content);
+        if (new_len > 0 && new_content[new_len - 1] != '\n') {
+            new_content[new_len] = '\n';
+            new_content[new_len + 1] = '\0';
+            new_len++;
+        }
+
+        size_t text_len2 = kstrlen(text);
+        if (new_len + text_len2 + 1 < sizeof(new_content)) {
+            kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
+            new_len += text_len2;
+            new_content[new_len] = '\0';
+        } else {
+            print("Text too long to append\n");
+            return;
+        }
+
+        int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
+        if (write_res < 0) {
+            print("Failed to write to file\n");
+            return;
+        }
+
+        print("Text added\n");
     } else if (kstrncmp(command, "rem", 3) == 0) {
         if (!args) {
             print("Usage: rem <filename>\n");
