@@ -54,10 +54,18 @@ $(ISO): $(KERNEL)
 	cp $(KERNEL) $(BOOT_DIR)/
 	grub-mkrescue -o $@ $(ISO_DIR)
 
+write:
+	@lsblk
+	@read -p "Enter target device (e.g. sdb): " dev; \
+	echo "Writing to /dev/$$dev ..."; \
+	make; \
+	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync; \
+	beep
+
 run: $(ISO)
 	qemu-system-i386 $<
 
 clean:
 	rm -rf *.o *.elf *.iso
 
-.PHONY: all clean run
+.PHONY: all clean write run
