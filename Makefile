@@ -20,14 +20,14 @@ LD = ld
 CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra
 LDFLAGS = -m elf_i386 -T link.ld
 KERNEL = kernel.elf
-ISO = cheeseos.iso
+ISO = cdos.iso
 ISO_DIR = iso
 BOOT_DIR = $(ISO_DIR)/boot
 GRUB_DIR = $(BOOT_DIR)/grub
 GRUB_CFG = $(GRUB_DIR)/grub.cfg
-OBJS = boot.o kernel.o shell.o vga.o keyboard.o
+OBJS = boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o
 
-all: $(ISO)
+all: clean $(ISO)
 
 boot.o: boot.S
 	$(AS) --32 -o $@ $<
@@ -46,6 +46,9 @@ keyboard.o: keyboard.c keyboard.h
 
 $(KERNEL): $(OBJS) link.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+
+ramdisk.o: ramdisk.c ramdisk.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(ISO): $(KERNEL)
 	cp $(KERNEL) $(BOOT_DIR)/
