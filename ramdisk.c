@@ -149,6 +149,26 @@ int ramdisk_readfile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, char
     return size;
 }
 
+int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer) {
+    if (!file || !buffer) return -1;
+    if (file->type != RAMDISK_INODE_TYPE_FILE) return -1;
+
+    if (offset > file->size) return -1;
+
+    if (offset + size > sizeof(file->data)) {
+        if (offset >= sizeof(file->data)) return -1;
+        size = sizeof(file->data) - offset;
+    }
+
+    mem_copy(&file->data[offset], buffer, size);
+
+    if (offset + size > file->size) {
+        file->size = offset + size;
+    }
+
+    return size;
+}
+
 typedef void (*ramdisk_readdir_callback)(const char *name, uint32_t inode_no);
 
 void ramdisk_readdir(ramdisk_inode_t *dir, ramdisk_readdir_callback cb) {
