@@ -19,19 +19,19 @@
 #include <stdint.h>
 #include "vga.h"
 #include "shell.h"
+#include "ramdisk.h"
 
 #define VGA_MEMORY ((uint16_t*)0xB8000)
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 #define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define WHITE_ON_BLACK 0x0F
-#define YELLOW_ON_BLACK 0x0E
 
 void kernel_main() {
     clear_screen();
+    ramdisk_init();
     shell_run();
 
     while (1)
         __asm__("hlt");
-
 }
