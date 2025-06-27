@@ -2,5 +2,3 @@
 My x86 DOS 
 
 This also should work on any x86_64 CPU as its a extension to x86
-
-TODO list moved: https://github.com/bluMATRIKZ/cheeseDOS/blob/main/TODO.md
