@@ -65,8 +65,7 @@ write:
 	@read -p "Enter target device (e.g. sdb): " dev; \
 	echo "Writing to /dev/$$dev ..."; \
 	make; \
-	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync; \
-	beep
+	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync
 
 run: $(ISO)
 	qemu-system-i386 $<
