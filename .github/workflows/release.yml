@@ -24,7 +24,6 @@ jobs:
         run: |
           echo "Building cheeseDOS ISO"
           mkdir -p out
-          # Replace the command below with your actual ISO build process
           echo "cheeseDOS ISO content" > out/cheeseDOS.txt
           xorriso -as mkisofs -o out/cheeseDOS.iso out/cheeseDOS.txt
 
@@ -40,4 +39,4 @@ jobs:
         run: |
           TAG=arun
           RELEASE_NAME="cheeseDOS alpha"
-          gh release create "$TAG" ./out/cheeseDOS.iso --title "$RELEASE_NAME" --notes "Automated release of cheeseDOS ISO"
+          gh release create "$TAG" ./out/cheeseDOS.iso --title "$RELEASE_NAME" --notes "Rolling alpha cheeseDOS builds"
