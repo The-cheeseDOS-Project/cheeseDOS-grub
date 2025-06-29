@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: write   # Required for creating releases and uploading assets
+  contents: write
 
 jobs:
   build_and_release:
@@ -22,7 +22,6 @@ jobs:
 
       - name: Build ISO
         run: |
-          # Your build commands here
           echo "Building cheeseDOS ISO"
           mkdir -p out
           touch out/cheeseDOS.iso
@@ -34,12 +33,13 @@ jobs:
           path: out/cheeseDOS.iso
 
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}
-          release_name: cheeseDOS Release ${{ github.sha }}
+          tag_name: v${{ github.run_number }}
+          release_name: cheeseDOS Release v${{ github.run_number }}
           draft: false
           prerelease: false
 
