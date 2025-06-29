@@ -24,7 +24,9 @@ jobs:
         run: |
           echo "Building cheeseDOS ISO"
           mkdir -p out
-          touch out/cheeseDOS.iso
+          # Replace the command below with your actual ISO build process
+          echo "cheeseDOS ISO content" > out/cheeseDOS.txt
+          xorriso -as mkisofs -o out/cheeseDOS.iso out/cheeseDOS.txt
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
