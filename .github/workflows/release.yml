@@ -37,6 +37,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=arun
+          TAG="arun-$(date +%Y%m%d%H%M%S)"
           RELEASE_NAME="cheeseDOS alpha"
           gh release create "$TAG" ./out/cheeseDOS.iso --title "$RELEASE_NAME" --notes "Rolling alpha cheeseDOS builds"
