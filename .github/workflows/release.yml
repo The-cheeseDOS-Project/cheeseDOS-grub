@@ -10,29 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch all history for tags
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential grub2-common xorriso
+          sudo apt-get install -y build-essential grub2-common xorriso mtools
 
       - name: Get latest tag
         id: get_tag
         run: |
-          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
 
-      - name: Increment version
+      - name: Bump version
         id: bump_version
         run: |
           tag=${{ steps.get_tag.outputs.latest_tag }}
-          echo "Latest tag: $tag"
-          # Remove leading 'v'
           ver=${tag#v}
           IFS='.' read -r major minor patch <<< "$ver"
+          major=${major:-0}
+          minor=${minor:-0}
           patch=${patch:-0}
           patch=$((patch + 1))
           new_ver="$major.$minor.$patch"
@@ -50,7 +51,7 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.bump_version.outputs.new_tag }}
-          release_name: "cheeseDOS alpha v${{ steps.bump_version.outputs.new_version }}"
+          release_name: "cheeseDOS v${{ steps.bump_version.outputs.new_version }}"
           draft: false
           prerelease: false
         env:
@@ -61,7 +62,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./cdos.iso
-          asset_name: cheeseDOS-alpha-v${{ steps.bump_version.outputs.new_version }}.iso
+          asset_name: cheeseDOS-v${{ steps.bump_version.outputs.new_version }}.iso
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
