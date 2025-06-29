@@ -32,23 +32,11 @@ jobs:
           name: cheeseDOS-iso
           path: out/cheeseDOS.iso
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
-          release_name: cheeseDOS Release v${{ github.run_number }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+          name: cheeseDOS Release v${{ github.run_number }}
+          files: ./out/cheeseDOS.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./out/cheeseDOS.iso
-          asset_name: cheeseDOS.iso
-          asset_content_type: application/octet-stream
