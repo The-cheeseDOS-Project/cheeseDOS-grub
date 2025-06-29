@@ -126,8 +126,8 @@ void shell_execute(const char* cmd) {
     }
 
     if (kstrcmp(command, "help") == 0) {
-        print("Commands: help, clear, print, version, hello, ls, see, add, rem, mkd, cd, calc\n");
-    } else if (kstrcmp(command, "version") == 0) {
+        print("Commands: help, clear, print, ver, hello, ls, see, add, rem, mkd, cd, calc\n");
+    } else if (kstrcmp(command, "ver") == 0) {
         print("cheeseDOS alpha by Connor Thomson\n");
     } else if (kstrcmp(command, "hello") == 0) {
         print("Hello, world!\n");
