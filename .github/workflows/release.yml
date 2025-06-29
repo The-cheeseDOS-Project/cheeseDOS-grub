@@ -35,8 +35,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: cheeseDOS Release v${{ github.run_number }}
+          tag_name: arun${{ github.run_number }}
+          name: cheeseDOS alpha
           files: ./out/cheeseDOS.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
