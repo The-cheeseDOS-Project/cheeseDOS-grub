@@ -32,11 +32,10 @@ jobs:
           name: cheeseDOS-iso
           path: out/cheeseDOS.iso
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: arun
-          name: cheeseDOS alpha
-          files: ./out/cheeseDOS.iso
+      - name: Create GitHub Release and Upload ISO
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=arun
+          RELEASE_NAME="cheeseDOS alpha"
+          gh release create "$TAG" ./out/cheeseDOS.iso --title "$RELEASE_NAME" --notes "Automated release of cheeseDOS ISO"
