@@ -1,0 +1,67 @@
+name: Build and Release cheeseDOS ISO
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential grub2-common xorriso
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Increment version
+        id: bump_version
+        run: |
+          tag=${{ steps.get_tag.outputs.latest_tag }}
+          echo "Latest tag: $tag"
+          # Remove leading 'v'
+          ver=${tag#v}
+          IFS='.' read -r major minor patch <<< "$ver"
+          patch=${patch:-0}
+          patch=$((patch + 1))
+          new_ver="$major.$minor.$patch"
+          new_tag="v$new_ver"
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
+          echo "new_version=$new_ver" >> $GITHUB_OUTPUT
+
+      - name: Build cheeseDOS ISO
+        run: |
+          make clean
+          make
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.bump_version.outputs.new_tag }}
+          release_name: "cheeseDOS alpha v${{ steps.bump_version.outputs.new_version }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload ISO asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cdos.iso
+          asset_name: cheeseDOS-alpha-v${{ steps.bump_version.outputs.new_version }}.iso
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
