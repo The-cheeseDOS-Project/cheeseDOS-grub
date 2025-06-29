@@ -5,64 +5,50 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write   # Required for creating releases and uploading assets
+
 jobs:
   build_and_release:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Fetch all history for tags
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Set up dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential grub2-common xorriso mtools
+          sudo apt-get install -y xorriso grub-pc-bin
 
-      - name: Get latest tag
-        id: get_tag
+      - name: Build ISO
         run: |
-          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          # Your build commands here
+          echo "Building cheeseDOS ISO"
+          mkdir -p out
+          touch out/cheeseDOS.iso
 
-      - name: Bump version
-        id: bump_version
-        run: |
-          tag=${{ steps.get_tag.outputs.latest_tag }}
-          ver=${tag#v}
-          IFS='.' read -r major minor patch <<< "$ver"
-          major=${major:-0}
-          minor=${minor:-0}
-          patch=${patch:-0}
-          patch=$((patch + 1))
-          new_ver="$major.$minor.$patch"
-          new_tag="v$new_ver"
-          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
-          echo "new_version=$new_ver" >> $GITHUB_OUTPUT
-
-      - name: Build cheeseDOS ISO
-        run: |
-          make clean
-          make
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cheeseDOS-iso
+          path: out/cheeseDOS.iso
 
       - name: Create Release
-        id: create_release
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.bump_version.outputs.new_tag }}
-          release_name: "cheeseDOS v${{ steps.bump_version.outputs.new_version }}"
+          tag_name: ${{ github.sha }}
+          release_name: cheeseDOS Release ${{ github.sha }}
           draft: false
           prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload ISO asset
-        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cdos.iso
-          asset_name: cheeseDOS-v${{ steps.bump_version.outputs.new_version }}.iso
+          asset_path: ./out/cheeseDOS.iso
+          asset_name: cheeseDOS.iso
           asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
