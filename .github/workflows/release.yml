@@ -17,28 +17,29 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xorriso grub-pc-bin
+          sudo apt-get install -y \
+            build-essential \
+            gcc-multilib \
+            grub-pc-bin \
+            xorriso \
+            mtools
 
-      - name: Build ISO
-        run: |
-          echo "Building cheeseDOS ISO"
-          mkdir -p out
-          echo "cheeseDOS ISO content" > out/cheeseDOS.txt
-          xorriso -as mkisofs -o out/cheeseDOS.iso out/cheeseDOS.txt
+      - name: Build ISO using Makefile
+        run: make
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
           name: cheeseDOS-iso
-          path: out/cheeseDOS.iso
+          path: cdos.iso
 
       - name: Create GitHub Release and Upload ISO
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="arun-$(date +%Y%m%d%H%M%S)"
+          TAG="auto-$(date +%Y%m%d%H%M%S)"
           RELEASE_NAME="cheeseDOS alpha"
-          gh release create "$TAG" ./out/cheeseDOS.iso --title "$RELEASE_NAME" --notes "Rolling alpha cheeseDOS builds"
+          gh release create "$TAG" cdos.iso --title "$RELEASE_NAME" --notes "Rolling alpha cheeseDOS builds"
