@@ -70,7 +70,10 @@ write:
 run: $(ISO)
 	qemu-system-i386 $<
 
+run64: $(ISO)
+	qemu-system-x86_64 $<
+
 clean:
 	rm -rf *.o *.elf *.iso
 
-.PHONY: all clean write run
+.PHONY: all clean write run run64
