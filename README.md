@@ -1,4 +1,4 @@
-This also should work on any x86_64 CPU as its a extension to x86
+This also works on x86_64 CPUs as its a extension to x86
 
 You can download the latest iso from the releases page
 
