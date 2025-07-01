@@ -1,4 +1,4 @@
-![logo](https://github.com/user-attachments/assets/6f97ffcb-3274-4425-b2bf-24c5ca8f4330)
+![logo](https://github.com/user-attachments/assets/38d1e0a1-81eb-44a3-8581-8d91c1183111)
 
 This also works on x86_64 CPUs as its a extension to x86
 
