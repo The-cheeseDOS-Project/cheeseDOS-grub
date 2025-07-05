@@ -126,17 +126,17 @@ void shell_execute(const char* cmd) {
     }
 
     if (kstrcmp(command, "help") == 0) {
-        print("Commands: help, clear, print, ver, hello, ls, see, add, rem, mkd, cd, calc\n");
+        print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum\n");
     } else if (kstrcmp(command, "ver") == 0) {
         print("cheeseDOS alpha\n");
-    } else if (kstrcmp(command, "hello") == 0) {
+    } else if (kstrcmp(command, "hi") == 0) {
         print("Hello, world!\n");
-    } else if (kstrcmp(command, "clear") == 0) {
+    } else if (kstrcmp(command, "cls") == 0) {
         clear_screen();
-    } else if (kstrncmp(command, "print", 5) == 0) {
+    } else if (kstrncmp(command, "say", 5) == 0) {
         if (args) print(args);
         print("\n");
-    } else if (kstrcmp(command, "calc") == 0) {
+    } else if (kstrcmp(command, "sum") == 0) {
         calc_command(args ? args : "");
     } else if (kstrcmp(command, "ls") == 0) {
         ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
