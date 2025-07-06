@@ -9,7 +9,7 @@ Thank you for visting the cheeseDOS GitHub page!
 |-------------|--------------------------------------------------------------------|
 | CPU         | x86-compatible processor (including x86_64)                        |
 | Storage     | Bootable device with at least 16 MB of space                       |
-| Keyboard    | PS/2 QWERTY keyboard required (USB keyboards are not supported)    |
+| Keyboard    | PS/2 QWERTY keyboard (USB keyboards are not supported)             |
 | Graphics    | VGA-compatible graphics device (text mode only)                    |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
 
