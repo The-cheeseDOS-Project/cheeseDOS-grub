@@ -5,6 +5,26 @@
 
 ## Thank you so much for 125 Unique visitors! 
 
+```
+/> help
+Commands: hlp, cls, say, ver, hi, Is, see, add, rem, mkd, cd, sum
+/> say whoah thats alot of commands
+whoah thats alot of commands
+/> sum 10×10
+100
+/> say that is a big number there!
+that is a big number there!
+/> add hi hello hello
+Text added
+/> see hi
+hello hello
+/> hi
+Hello, world!
+/> ver
+cheeseDOS alpha
+/>
+```
+
 ## System Requirements (for booting on real hardware)
 
 | Component   | Requirement                                                        |
