@@ -24,7 +24,7 @@ There are many ways to contribute, including:
    ```
 
 3. **Create a Branch**
-   Make a new branch for your work:
+   Make a new branch:
    ```bash
    git checkout -b <feature>/<your-feature-name>
    ```
