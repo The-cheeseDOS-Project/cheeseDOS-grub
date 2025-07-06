@@ -20,5 +20,6 @@ For instructions on building from source, refer to the [Build and Run Guide](htt
 ## Project Guidelines
 
 - **Code of Conduct**: [CODE_OF_CONDUCT.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CODE_OF_CONDUCT.md)  
-- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CONTRIBUTING.md)  
+- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CONTRIBUTING.md)
+- **GPL V2 LICENSE**: [LICENSE](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/LICENSE)
 - **Security Policy**: [SECURITY.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/SECURITY.md)
