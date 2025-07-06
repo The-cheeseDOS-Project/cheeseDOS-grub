@@ -11,9 +11,17 @@
 | Graphics    | VGA-compatible graphics device (text mode only)                    |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
 
+## Getting Started
 
-You can download the latest iso from the releases page
+You can download the latest ISO from the [Releases](https://github.com/bluMATRIKZ/cheeseDOS/releases) page.
 
-For instructions on building it from source, refer to: https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run
+For instructions on building from source, refer to the  
+[Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
 
+---
 
+## Project Guidelines
+
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CODE_OF_CONDUCT.md)  
+- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CONTRIBUTING.md)  
+- **Security Policy**: [SECURITY.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/SECURITY.md)
