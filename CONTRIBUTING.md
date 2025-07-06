@@ -59,5 +59,5 @@ Reporting Issues
 
 Communication
 
-    For questions or discussions, you can open an issue or contact the maintainers via email at [your-email@example.com].
+    For questions or discussions, you can open an issue or contact the maintainers via email at blumatrikz@gmail.com.
     Thank you for building cheeseDOS!
