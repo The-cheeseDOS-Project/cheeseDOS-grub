@@ -15,8 +15,7 @@
 
 You can download the latest ISO from the [Releases](https://github.com/bluMATRIKZ/cheeseDOS/releases) page.
 
-For instructions on building from source, refer to the  
-[Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
+For instructions on building from source, refer to the [Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
 
 ## Project Guidelines
 
