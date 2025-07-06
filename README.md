@@ -39,7 +39,7 @@ cheeseDOS alpha
 
 You can download the latest ISO from the [Releases](https://github.com/bluMATRIKZ/cheeseDOS/releases) page.
 
-[Here's](https://github.com/bluMATRIKZ/cDOS-writer/releases/latest) a litte program I wrote for linux that can automatically get the latest iso and burn/image it
+[Here's](https://github.com/bluMATRIKZ/cDOS-writer/releases/latest) a litte program I wrote for linux that can automatically get the latest iso and burn/image it.
 
 For instructions on building from source, refer to the [Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
 
