@@ -19,7 +19,7 @@ There are many ways to contribute, including:
 
 2. **Clone Your Fork**  
    ```bash
-   git clone https://github.com/your-username/cheeseDOS.git
+   git clone https://github.com/blumatrikz/cheeseDOS.git
    cd cheeseDOS
    ```
 
