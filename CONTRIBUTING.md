@@ -51,6 +51,7 @@ Coding Guidelines
     - Follow the existing coding style and conventions in the project.
     - Write clear, readable, and well-commented code.
     - Test your changes thoroughly on QEMU (with "make run") before submitting.
+    - ONLY Linker Script, Assembly, Makefile, and C is allowed. 
     - Artificial intelligence generated code is not permitted.
 
 Reporting Issues
