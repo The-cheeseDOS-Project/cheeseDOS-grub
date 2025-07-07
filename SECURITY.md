@@ -6,8 +6,7 @@ Theese are the supported versions of cheeseDOS.
 
 | Version        | Supported          |
 | -------------- | ------------------ |
-| latest alpha   | :white_check_mark: |
-| < latest alpha | :x:                |
+| latest alpha   | Yes                |
 
 ## Reporting a Vulnerability
 
