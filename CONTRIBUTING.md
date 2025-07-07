@@ -46,19 +46,19 @@ There are many ways to contribute, including:
 7. **Open a Pull Request**
     Submit your changes by opening a pull request on GitHub.
 
-Coding Guidelines
+## Coding Guidelines
 
-    - Follow the existing coding style and conventions in the project.
-    - Write clear, readable, and well-commented code.
-    - Test your changes thoroughly on QEMU (with "make run") before submitting.
-    - ONLY Linker Script, Assembly, Makefile, and C is allowed. 
-    - Artificial intelligence generated code is not permitted.
+    - 1. Follow the existing coding style and conventions in the project.
+    - 2. Write clear, readable, and well-commented code.
+    - 3. Test your changes thoroughly on QEMU (with "make run") before submitting.
+    - 4. ONLY Linker Script, Assembly, Makefile, Markdown, headers and C is allowed. 
+    - 5. Artificial intelligence generated code is not permitted.
 
-Reporting Issues
+## Reporting Issues
 
     If you find bugs or have feature requests, please submit them in the GitHub Issues section. Include detailed descriptions and steps to reproduce the issue.
 
-Communication
+## Communication
 
     For questions or discussions, you can open an issue or contact the maintainers via email at blumatrikz@gmail.com.
     Thank you for building cheeseDOS!
