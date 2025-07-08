@@ -21,12 +21,6 @@
 #include "shell.h"
 #include "ramdisk.h"
 
-#define VGA_MEMORY ((uint16_t*)0xB8000)
-#define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 25
-#define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
-#define WHITE_ON_BLACK 0x0F
-
 void kernel_main() {
     clear_screen();
     ramdisk_init();
