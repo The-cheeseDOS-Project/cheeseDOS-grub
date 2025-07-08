@@ -31,7 +31,8 @@ cheeseDOS alpha
 
 | Component   | Requirement                                                        |
 |-------------|--------------------------------------------------------------------|
-| CPU         | x86-compatible processor (including x86_64)                        |
+| CPU         | Pentuim II or newer x86-compatible processor (including x86_64)    |
+| Memory      | 2MB or higher                                                      |
 | Storage     | Bootable device with at least 16 MB of space                       |
 | Keyboard    | PS/2 QWERTY keyboard (Some USB keyboards may not work)             |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
