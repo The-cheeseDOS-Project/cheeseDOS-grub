@@ -33,7 +33,7 @@ cheeseDOS alpha
 |-------------|--------------------------------------------------------------------|
 | CPU         | x86-compatible processor (including x86_64)                        |
 | Storage     | Bootable device with at least 16 MB of space                       |
-| Keyboard    | PS/2 QWERTY keyboard (USB keyboards may work)                      |
+| Keyboard    | PS/2 QWERTY keyboard (Some USB keyboards may not work)             |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
 
 ## Getting Started
