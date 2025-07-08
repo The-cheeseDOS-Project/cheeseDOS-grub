@@ -125,7 +125,7 @@ void shell_execute(const char* cmd) {
         args = NULL;
     }
 
-    if (kstrcmp(command, "help") == 0) {
+    if (kstrcmp(command, "hlp") == 0) {
         print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum\n");
     } else if (kstrcmp(command, "ver") == 0) {
         print("cheeseDOS alpha\n");
