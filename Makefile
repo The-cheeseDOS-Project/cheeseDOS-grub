@@ -24,7 +24,7 @@ ISO = cdos.iso
 ISO_DIR = iso
 BOOT_DIR = $(ISO_DIR)/boot
 GRUB_DIR = $(BOOT_DIR)/grub
-GRUB_CFG = $(GRUB_DIR)/grub.cfg
+GRUB_CFG = grub.cfg
 OBJS = boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o calc.o string.o
 
 all: clean $(ISO)
@@ -57,7 +57,9 @@ $(KERNEL): $(OBJS) link.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
 $(ISO): $(KERNEL)
-	cp $(KERNEL) $(BOOT_DIR)/
+	mkdir -p $(GRUB_DIR)
+        cp $(GRUB_CFG) $(GRUB_DIR)
+        cp $(KERNEL) $(BOOT_DIR)/
 	grub-mkrescue -o $@ $(ISO_DIR)
 
 write:
@@ -74,6 +76,6 @@ run64: $(ISO)
 	qemu-system-x86_64 $<
 
 clean:
-	rm -rf *.o *.elf *.iso
+	rm -r $(ISO_DIR) $(ISO) $(KERNEL) $(OBJS) 
 
 .PHONY: all clean write run run64
