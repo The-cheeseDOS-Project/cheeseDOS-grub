@@ -37,6 +37,8 @@ cheeseDOS alpha
 | Keyboard    | PS/2 QWERTY keyboard (Some USB keyboards may not work)             |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
 
+NOTE: The cpu requirement will go down once I make my own bootloader.
+
 ## Getting Started
 
 You can download the latest ISO from the [Releases](https://github.com/bluMATRIKZ/cheeseDOS/releases) page.
