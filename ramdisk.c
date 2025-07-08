@@ -19,7 +19,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define RAMDISK_SIZE 512
+#define RAMDISK_SIZE 1024
 #define RAMDISK_FILENAME_MAX 8
 
 typedef enum {
