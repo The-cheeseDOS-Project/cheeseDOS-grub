@@ -24,6 +24,7 @@
 #include "string.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "rtc.h"
 
 void putchar(char c);
 int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer);
@@ -37,6 +38,25 @@ static int history_count = 0;
 static int history_pos = 0;
 static int history_view_pos = -1;
 static uint32_t current_dir_inode_no = 0;
+
+static void print_uint(uint32_t num) {
+    char buf[12];
+    int i = 0;
+
+    if (num == 0) {
+        putchar('0');
+        return;
+    }
+
+    while (num > 0) {
+        buf[i++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    for (int j = i - 1; j >= 0; j--) {
+        putchar(buf[j]);
+    }
+}
 
 static void print_prompt() {
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
@@ -106,6 +126,49 @@ static void print_name_callback(const char *name, uint32_t inode) {
     }
 }
 
+static void handle_rtc_command() {
+    rtc_time_t current_time;
+    read_rtc_time(&current_time);
+
+    if (current_time.month < 10) putchar('0');
+    print_uint(current_time.month);
+    putchar('/');
+
+    if (current_time.day < 10) putchar('0');
+    print_uint(current_time.day);
+    putchar('/');
+
+    print_uint(current_time.year);
+    print(" ");
+
+    uint8_t display_hour = current_time.hour;
+    const char* ampm = "AM";
+
+    if (display_hour >= 12) {
+        ampm = "PM";
+        if (display_hour > 12) {
+            display_hour -= 12;
+        }
+    } else if (display_hour == 0) {
+        display_hour = 12;
+    }
+
+    if (display_hour < 10) putchar('0');
+    print_uint(display_hour);
+    putchar(':');
+
+    if (current_time.minute < 10) putchar('0');
+    print_uint(current_time.minute);
+    putchar(':');
+
+    if (current_time.second < 10) putchar('0');
+    print_uint(current_time.second);
+    putchar(' '); // Added space here
+    print(ampm);
+    print("\n");
+}
+
+
 void shell_execute(const char* cmd) {
     if (cmd[0] == '\0') return;
 
@@ -126,7 +189,7 @@ void shell_execute(const char* cmd) {
     }
 
     if (kstrcmp(command, "hlp") == 0) {
-        print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum\n");
+        print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
     } else if (kstrcmp(command, "ver") == 0) {
         print("cheeseDOS alpha\n");
     } else if (kstrcmp(command, "hi") == 0) {
@@ -303,7 +366,10 @@ void shell_execute(const char* cmd) {
             return;
         }
         current_dir_inode_no = new_dir->inode_no;
-    } else {
+    } else if (kstrcmp(command, "rtc") == 0) {
+        handle_rtc_command();
+    }
+    else {
         print(cmd);
         print(": command not found\n");
     }
@@ -375,7 +441,7 @@ void shell_run() {
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
                 for (int i = cursor_index; i < idx; i++) putchar(input[i]);
                 putchar(' ');
-                set_cursor_pos(prompt_start_vga_pos + idx);
+                set_cursor_pos(prompt_start_vga_pos + cursor_index);
             }
             continue;
         }
