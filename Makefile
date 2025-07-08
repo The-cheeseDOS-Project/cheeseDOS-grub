@@ -1,5 +1,5 @@
 # cheeseDOS - My x86 DOS
-# Copyright (C) 2025  Connor Thomson
+# Copyright (C) 2025  Connor Thomson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -8,11 +8,11 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
 AS = as
@@ -27,7 +27,10 @@ GRUB_DIR = $(BOOT_DIR)/grub
 GRUB_CFG = grub.cfg
 OBJS = boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o calc.o string.o
 
-all: clean $(ISO)
+RM = rm -f
+RMDIR = rm -rf
+
+all: $(ISO)
 
 boot.o: boot.S
 	$(AS) --32 -o $@ $<
@@ -58,15 +61,14 @@ $(KERNEL): $(OBJS) link.ld
 
 $(ISO): $(KERNEL)
 	mkdir -p $(GRUB_DIR)
-        cp $(GRUB_CFG) $(GRUB_DIR)
-        cp $(KERNEL) $(BOOT_DIR)/
+	cp $(GRUB_CFG) $(GRUB_DIR)
+	cp $(KERNEL) $(BOOT_DIR)/
 	grub-mkrescue -o $@ $(ISO_DIR)
 
-write:
+write: $(ISO)
 	@lsblk
 	@read -p "Enter target device (e.g. sdb): " dev; \
 	echo "Writing to /dev/$$dev ..."; \
-	make; \
 	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync
 
 run: $(ISO)
@@ -76,6 +78,7 @@ run64: $(ISO)
 	qemu-system-x86_64 $<
 
 clean:
-	rm -r $(ISO_DIR) $(ISO) $(KERNEL) $(OBJS) 
+	$(RMDIR) $(ISO_DIR)
+	$(RM) $(ISO) $(KERNEL) $(OBJS)
 
 .PHONY: all clean write run run64
