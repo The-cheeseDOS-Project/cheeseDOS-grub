@@ -6,7 +6,7 @@
 CheeseDOS is a fully GNU, custom C written, super small 11MB live command based operating system that loads into random access memory.
 
 ```
-/> help
+/> hlp
 Commands: hlp, cls, say, ver, hi, Is, see, add, rem, mkd, cd, sum
 /> say whoah thats alot of commands
 whoah thats alot of commands
