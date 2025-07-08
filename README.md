@@ -7,7 +7,7 @@ CheeseDOS is a fully GNU, custom C written, super small 11MB live command based 
 
 ```
 /> hlp
-Commands: hlp, cls, say, ver, hi, Is, see, add, rem, mkd, cd, sum
+Commands: hlp, cls, say, ver, hi, Is, see, add, rem, mkd, cd, sum, rtc
 /> say whoah thats alot of commands
 whoah thats alot of commands
 /> sum 10×10
