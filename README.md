@@ -44,7 +44,7 @@ You can download the latest ISO from the [Releases](https://github.com/bluMATRIK
 
 For instructions on building from source, refer to the [Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
 
-## Documemtation
+## Documentation
 
 - **The cheeseDOS wiki**: [The cheeseDOS wiki](https://github.com/bluMATRIKZ/cheeseDOS/wiki)
 
