@@ -3,9 +3,7 @@
 
 ## Thank you for visting the cheeseDOS GitHub page!
 
-CheeseDOS is a fully GNU, custom C written, super small 11MB live command based operating system that loads into random access memory
-
-## Thank you so much for 125 Unique visitors! 
+CheeseDOS is a fully GNU, custom C written, super small 11MB live command based operating system that loads into random access memory.
 
 ```
 /> help
@@ -26,6 +24,8 @@ Hello, world!
 cheeseDOS alpha
 />
 ```
+
+## Thank you so much for 125 Unique visitors!
 
 ## System Requirements (for booting on real hardware)
 
