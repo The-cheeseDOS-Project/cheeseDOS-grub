@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #define RAMDISK_SIZE 512
-#define RAMDISK_FILENAME_MAX 32
+#define RAMDISK_FILENAME_MAX 8
 
 typedef enum {
     RAMDISK_INODE_TYPE_UNUSED = 0,
