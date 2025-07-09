@@ -71,10 +71,36 @@ jobs:
           name: cheeseDOS-iso
           path: cdos.iso
 
+      - name: Generate unique 6-char Base62 tag
+        id: gentag
+        run: |
+          CHARS=( {0..9} {A..Z} {a..z} )
+          base62() {
+            local num=$1
+            local out=""
+            while [ "$num" -gt 0 ]; do
+              out="${CHARS[$((num % 62))]}$out"
+              num=$((num / 62))
+            done
+            echo "$out"
+          }
+
+          EXISTING_TAGS=$(git ls-remote --tags origin | awk -F/ '{print $NF}')
+          for i in {1..100}; do
+            RAND=$(od -An -N4 -tu4 < /dev/urandom | tr -d ' ')
+            TAG=$(base62 "$RAND")
+            if ! echo "$EXISTING_TAGS" | grep -qx "$TAG"; then
+              echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "Failed to generate unique tag" >&2
+          exit 1
+
       - name: Create GitHub Release and Upload ISO
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="$(date +%y%d%m%S)"
+          TAG="${{ steps.gentag.outputs.tag }}"
           TITLE="cheeseDOS alpha build $TAG"
           gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
