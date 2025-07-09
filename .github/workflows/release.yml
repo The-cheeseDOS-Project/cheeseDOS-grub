@@ -75,9 +75,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release list --limit 100 | grep "cheeseDOS alpha" | awk '{print $1}' | xargs -r -n1 gh release delete --yes
-          git fetch --tags
-          git tag -l "auto-*" | xargs -r -n1 git push --delete origin
+          RELEASES=$(gh release list --limit 100 | grep "cheeseDOS alpha" | awk '{print $1}')
+          if [ -n "$RELEASES" ]; then
+            echo "$RELEASES" | xargs -n1 gh release delete --yes
+          fi
+          TAGS=$(git ls-remote --tags origin | awk -F/ '/refs\/tags\/auto-/ {print $NF}')
+          if [ -n "$TAGS" ]; then
+            echo "$TAGS" | xargs -n1 git push --delete origin
+          fi
 
       - name: Create GitHub Release and Upload ISO
         env:
