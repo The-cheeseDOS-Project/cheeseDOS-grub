@@ -71,23 +71,10 @@ jobs:
           name: cheeseDOS-iso
           path: cdos.iso
 
-      - name: Delete all releases and tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASES=$(gh release list --limit 100 | awk '{print $1}')
-          if [ -n "$RELEASES" ]; then
-            echo "$RELEASES" | xargs -n1 gh release delete --yes
-          fi
-          TAGS=$(git ls-remote --tags origin | awk -F/ '/refs\/tags\// {print $NF}')
-          if [ -n "$TAGS" ]; then
-            echo "$TAGS" | xargs -n1 git push --delete origin
-          fi
-
       - name: Create GitHub Release and Upload ISO
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="auto-$(date +%Y%m%d%H%M%S)"
-          RELEASE_NAME="cheeseDOS alpha"
-          gh release create "$TAG" cdos.iso --title "$RELEASE_NAME" --notes "Rolling alpha cheeseDOS builds"
+          TAG="$(date +%Y%m%d%H%M%S)"
+          TITLE="cheeseDOS alpha build $TAG"
+          gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
