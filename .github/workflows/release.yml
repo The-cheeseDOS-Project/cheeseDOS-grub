@@ -34,12 +34,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Cache build dependencies
+      - name: Cache APT metadata
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/apt
-            /var/cache/apt/archives
+          path: ~/.cache/apt
           key: ${{ runner.os }}-apt-${{ hashFiles('**/Makefile') }}
           restore-keys: |
             ${{ runner.os }}-apt-
@@ -102,5 +100,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.gentag.outputs.tag }}"
-          TITLE="cheeseDOS alpha (build: $TAG)"
+          TITLE="cheeseDOS alpha build $TAG"
           gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
