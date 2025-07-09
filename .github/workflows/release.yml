@@ -75,6 +75,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="$(date +%Y%m%d%H%M%S)"
+          TAG="$(date +%y%d%S)"
           TITLE="cheeseDOS alpha build $TAG"
           gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
