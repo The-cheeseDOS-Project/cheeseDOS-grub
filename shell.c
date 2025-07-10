@@ -26,8 +26,8 @@
 #include <stdint.h>
 #include "rtc.h"
 
-void putchar(char c);
-int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer);
+#define OS_VER "cheeseDOS alpha"
+#define SHELL_VER "crumblet alpha"
 
 #define INPUT_BUF_SIZE 256
 #define HISTORY_SIZE 32
@@ -38,6 +38,9 @@ static int history_count = 0;
 static int history_pos = 0;
 static int history_view_pos = -1;
 static uint32_t current_dir_inode_no = 0;
+
+void putchar(char c);
+int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer);
 
 static void print_uint(uint32_t num) {
     char buf[12];
@@ -191,7 +194,8 @@ void shell_execute(const char* cmd) {
     if (kstrcmp(command, "hlp") == 0) {
         print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
     } else if (kstrcmp(command, "ver") == 0) {
-        print("cheeseDOS alpha\n");
+       printf("%s\n", OS_VER);
+       printf("Shell: %s\n", SHELL_VER);
     } else if (kstrcmp(command, "hi") == 0) {
         print("Hello, world!\n");
     } else if (kstrcmp(command, "cls") == 0) {
