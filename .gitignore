@@ -20,8 +20,15 @@ cdos.iso
 iso/
 *~
 *.swp
-.vscode/
-.idea/
+tmp/
+temp/
+.cache/
+logs/
+*.log
+System Volume Information/
+*.ini
 .DS_Store
 Thumbs.db
 core
+.vscode/
+.idea/
