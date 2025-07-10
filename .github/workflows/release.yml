@@ -22,7 +22,9 @@ on:
       - main
     paths-ignore:
       - '**/*.md'
-      - 'LICENSE'
+      - LICENSE
+      - .gitignore
+      - '.github/ISSUE_TEMPLATE/**'
 
 permissions:
   contents: write
