@@ -22,6 +22,7 @@ on:
       - main
     paths-ignore:
       - '**/*.md'
+      - 'LICENSE'
 
 permissions:
   contents: write
