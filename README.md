@@ -41,19 +41,19 @@ NOTE: The processor and storage requirement will go down once I make my own boot
 
 ## Getting Started
 
-You can download the latest ISO from the [Releases](https://github.com/bluMATRIKZ/cheeseDOS/releases) page.
+You can download the latest ISO from the [Releases](https://github.com/The-cheeseDOS-Project/cheeseDOS/releases) page.
 
-[Here's](https://github.com/bluMATRIKZ/cDOS-writer/releases/latest) a litte program I wrote for linux that can automatically get the latest iso and burn/image it.
+[Here's](https://github.com/The-cheeseDOS-Project/cDOS-writer/releases/latest) a litte program I wrote for linux that can automatically get the latest iso and burn/image it.
 
-For instructions on building from source, refer to the [Build and Run Guide](https://github.com/bluMATRIKZ/cheeseDOS/wiki/Build-and-Run).
+For instructions on building from source, refer to the [Build and Run Guide](https://github.com/The-cheeseDOS-Project/cheeseDOS/wiki/Build-and-Run).
 
 ## Documentation
 
-- **The cheeseDOS wiki**: [The cheeseDOS wiki](https://github.com/bluMATRIKZ/cheeseDOS/wiki)
+- **The cheeseDOS wiki**: [The cheeseDOS wiki](https://github.com/The-cheeseDOS-Project/cheeseDOS/wiki)
 
 ## Project Guidelines
 
-- **Code of Conduct**: [CODE_OF_CONDUCT.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CODE_OF_CONDUCT.md)  
-- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/CONTRIBUTING.md)
-- **GPL v3 Licese**: [LICENSE](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/LICENSE)
-- **Security Policy**: [SECURITY.md](https://github.com/bluMATRIKZ/cheeseDOS/blob/main/SECURITY.md)
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/CODE_OF_CONDUCT.md)  
+- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/CONTRIBUTING.md)
+- **GPL v3 Licese**: [LICENSE](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/LICENSE)
+- **Security Policy**: [SECURITY.md](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/SECURITY.md)
