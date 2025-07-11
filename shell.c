@@ -26,9 +26,6 @@
 #include <stdint.h>
 #include "rtc.h"
 
-#define OS_VER "cheeseDOS alpha"
-#define SHELL_VER "crumblet alpha"
-
 #define INPUT_BUF_SIZE 256
 #define HISTORY_SIZE 32
 
@@ -194,8 +191,7 @@ void shell_execute(const char* cmd) {
     if (kstrcmp(command, "hlp") == 0) {
         print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
     } else if (kstrcmp(command, "ver") == 0) {
-       printf("%s\n", OS_VER);
-       printf("Shell: %s\n", SHELL_VER);
+        print("cheeseDOS alpha\n");
     } else if (kstrcmp(command, "hi") == 0) {
         print("Hello, world!\n");
     } else if (kstrcmp(command, "cls") == 0) {
