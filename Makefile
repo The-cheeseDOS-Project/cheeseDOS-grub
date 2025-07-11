@@ -30,7 +30,7 @@ OBJS = boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o calc.o string.o rtc.o
 RM = rm -f
 RMDIR = rm -rf
 
-all: $(ISO)
+all: clean $(ISO)
 
 boot.o: boot.S
 	$(AS) --32 -o $@ $<
@@ -74,7 +74,6 @@ $(ISO): $(KERNEL)
 	-o cdos.iso \
 	iso
 
-
 write: $(ISO)
 	@lsblk
 	@read -p "Enter target device (e.g. sdb): " dev; \
@@ -82,13 +81,10 @@ write: $(ISO)
 	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync
 
 run: $(ISO)
-	qemu-system-i386 $<
-
-run64: $(ISO)
-	qemu-system-x86_64 $<
+	qemu-system-i386 -drive file=$<,format=raw -m 3M -cpu pentium2 
 
 clean:
 	$(RMDIR) $(ISO_DIR)
 	$(RM) $(ISO) $(KERNEL) $(OBJS)
 
-.PHONY: all clean write run run64
+.PHONY: all clean write run
