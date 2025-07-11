@@ -63,10 +63,17 @@ $(KERNEL): $(OBJS) link.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
 $(ISO): $(KERNEL)
-	mkdir -p $(GRUB_DIR)
+	mkdir -p $(GRUB_DIR) $(ISO_DIR)
 	cp $(GRUB_CFG) $(GRUB_DIR)
 	cp $(KERNEL) $(BOOT_DIR)/
-	grub-mkrescue -o $@ $(ISO_DIR)
+	grub-mkrescue \
+	--directory=/usr/lib/grub/i386-pc \
+	--compress=xz \
+	--install-modules="multiboot" \
+	--fonts="" --themes="" --locales="" \
+	-o cdos.iso \
+	iso
+
 
 write: $(ISO)
 	@lsblk
