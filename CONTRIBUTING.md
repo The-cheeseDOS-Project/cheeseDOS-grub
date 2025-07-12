@@ -50,10 +50,9 @@ There are many ways to contribute, including:
 
     - 1. Follow the existing coding style and conventions in the project.
     - 2. Write clear, readable, and well-commented code.
-    - 3. Test your changes thoroughly on QEMU (with "make run") before submitting.
+    - 3. Code must work and be tested on a emulated 386 with 86box.
     - 4. ONLY Linker Script, Assembly, Makefile, Markdown, headers and C is allowed. 
     - 5. Artificial intelligence generated code is not permitted.
-    - 6. Code must work and be tested on a emulated 386 with 86box.
 
 ## Reporting Issues
 
