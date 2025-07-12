@@ -27,6 +27,13 @@ cheeseDOS alpha
 
 ## Thank you so much for 130 Unique visitors!
 
+## CheeseDOS Features
+
+- 512B CheeseFS RAM Disk
+- Run`s on computers from 1985 (if they have a 386 and 3MB RAM) and onwards
+- Quite a bit of commands
+- AND MORE!
+
 ## System Requirements (for booting on real hardware)
 
 | Component   | Requirement                                                        |
