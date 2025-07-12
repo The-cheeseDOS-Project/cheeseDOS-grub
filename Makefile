@@ -17,7 +17,7 @@
 CC = gcc
 AS = as
 LD = ld
-CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy
+CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy -march=i386
 LDFLAGS = -m elf_i386 -T link.ld
 KERNEL = kernel.elf
 ISO = cdos.iso
@@ -81,7 +81,7 @@ write: $(ISO)
 	sudo dd if=cdos.iso of=/dev/$$dev bs=4M status=progress && sync
 
 run: $(ISO)
-	qemu-system-i386 -drive file=$<,format=raw -m 3M -cpu pentium2 
+	qemu-system-i386 -drive file=$<,format=raw -m 3M -cpu 486
 
 clean:
 	$(RMDIR) $(ISO_DIR)
