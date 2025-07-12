@@ -68,7 +68,6 @@ $(ISO): $(KERNEL)
 	cp $(KERNEL) $(BOOT_DIR)/
 	grub-mkrescue \
 	--directory=/usr/lib/grub/i386-pc \
-	--compress=xz \
 	--install-modules="multiboot" \
 	--fonts="" --themes="" --locales="" \
 	-o cdos.iso \
