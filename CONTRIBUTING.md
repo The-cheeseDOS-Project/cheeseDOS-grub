@@ -53,6 +53,7 @@ There are many ways to contribute, including:
     - 3. Test your changes thoroughly on QEMU (with "make run") before submitting.
     - 4. ONLY Linker Script, Assembly, Makefile, Markdown, headers and C is allowed. 
     - 5. Artificial intelligence generated code is not permitted.
+    - 6. Code must work and be tested on a emulated 386 with 86box.
 
 ## Reporting Issues
 
