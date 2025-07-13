@@ -163,11 +163,246 @@ static void handle_rtc_command() {
 
     if (current_time.second < 10) putchar('0');
     print_uint(current_time.second);
-    putchar(' '); // Added space here
+    putchar(' ');
     print(ampm);
     print("\n");
 }
 
+typedef void (*command_func_t)(const char* args);
+
+typedef struct {
+    const char* name;
+    command_func_t func;
+} shell_command_t;
+
+static void cmd_hlp(const char* args) {
+    (void)args;
+    print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
+}
+
+static void cmd_ver(const char* args) {
+    (void)args;
+    print("cheeseDOS alpha\n");
+}
+
+static void cmd_hi(const char* args) {
+    (void)args;
+    print("Hello, world!\n");
+}
+
+static void cmd_cls(const char* args) {
+    (void)args;
+    clear_screen();
+}
+
+static void cmd_say(const char* args) {
+    if (args) print(args);
+    print("\n");
+}
+
+static void cmd_sum(const char* args) {
+    calc_command(args ? args : "");
+}
+
+static void cmd_ls(const char* args) {
+    (void)args;
+    ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
+    if (!dir) {
+        print("Failed to get directory inode\n");
+        return;
+    }
+    ramdisk_readdir(dir, print_name_callback);
+}
+
+static void cmd_see(const char* args) {
+    if (!args) {
+        print("Usage: see <filename>\n");
+        return;
+    }
+    const char *filename = args;
+    ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
+    if (!dir) {
+        print("Failed to get current directory\n");
+        return;
+    }
+    ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
+    if (!file) {
+        print("File not found\n");
+        return;
+    }
+    if (file->type == RAMDISK_INODE_TYPE_DIR) {
+        print("Cannot see directory\n");
+        return;
+    }
+    char buf[256];
+    int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
+    if (read < 0) {
+        print("Error reading file\n");
+        return;
+    }
+    buf[read] = 0;
+    print(buf);
+    print("\n");
+}
+
+static void cmd_add(const char* args) {
+    if (!args) {
+        print("Usage: add <filename> \"text to add\"\n");
+        return;
+    }
+    const char *space_pos = kstrchr(args, ' ');
+    if (!space_pos) {
+        int res = ramdisk_create_file(current_dir_inode_no, args);
+        if (res == 0) {
+            print("File created\n");
+        } else {
+            print("Failed to create file\n");
+        }
+        return;
+    }
+    size_t filename_len = (size_t)(space_pos - args);
+    char filename[INPUT_BUF_SIZE];
+    if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
+    kstrncpy(filename, args, filename_len);
+    filename[filename_len] = '\0';
+
+    const char *text_start = space_pos + 1;
+    char text[INPUT_BUF_SIZE];
+    size_t text_len = kstrlen(text_start);
+    if (text_start[0] == '"' && text_start[text_len - 1] == '"') {
+        kstrncpy(text, text_start + 1, text_len - 2);
+        text[text_len - 2] = '\0';
+    } else {
+        kstrncpy(text, text_start, INPUT_BUF_SIZE - 1);
+        text[INPUT_BUF_SIZE - 1] = '\0';
+    }
+
+    ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
+    if (!dir) {
+        print("Failed to get current directory\n");
+        return;
+    }
+    ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
+    if (!file) {
+        int res = ramdisk_create_file(current_dir_inode_no, filename);
+        if (res != 0) {
+            print("Failed to create file\n");
+            return;
+        }
+        file = ramdisk_find_inode_by_name(dir, filename);
+        if (!file) {
+            print("File creation error\n");
+            return;
+        }
+    }
+
+    char old_content[1024];
+    int old_len = ramdisk_readfile(file, 0, sizeof(old_content) - 1, old_content);
+    if (old_len < 0) old_len = 0;
+    old_content[old_len] = '\0';
+
+    char new_content[2048];
+    kstrncpy(new_content, old_content, sizeof(new_content) - 1);
+    size_t new_len = kstrlen(new_content);
+    if (new_len > 0 && new_content[new_len - 1] != '\n') {
+        new_content[new_len] = '\n';
+        new_content[new_len + 1] = '\0';
+        new_len++;
+    }
+
+    size_t text_len2 = kstrlen(text);
+    if (new_len + text_len2 + 1 < sizeof(new_content)) {
+        kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
+        new_len += text_len2;
+        new_content[new_len] = '\0';
+    } else {
+        print("Text too long to append\n");
+        return;
+    }
+
+    int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
+    if (write_res < 0) {
+        print("Failed to write to file\n");
+        return;
+    }
+
+    print("Text added\n");
+}
+
+static void cmd_rem(const char* args) {
+    if (!args) {
+        print("Usage: rem <filename>\n");
+        return;
+    }
+    int res = ramdisk_remove_file(current_dir_inode_no, args);
+    if (res == 0) {
+        print("File removed\n");
+    } else {
+        print("Failed to remove file\n");
+    }
+}
+
+static void cmd_mkd(const char* args) {
+    if (!args) {
+        print("Usage: mkd <dirname>\n");
+        return;
+    }
+    int res = ramdisk_create_dir(current_dir_inode_no, args);
+    if (res == 0) {
+        print("Directory created\n");
+    } else {
+        print("Failed to create directory\n");
+    }
+}
+
+static void cmd_cd(const char* args) {
+    if (!args) {
+        print("Usage: cd <dirname>\n");
+        return;
+    }
+    const char *dirname = args;
+    if (kstrcmp(dirname, "..") == 0) {
+        if (current_dir_inode_no != 0) {
+            ramdisk_inode_t *cur_dir = ramdisk_iget(current_dir_inode_no);
+            if (cur_dir) current_dir_inode_no = cur_dir->parent_inode_no;
+        }
+        print("Moved up\n");
+        return;
+    }
+    ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
+    if (!dir) {
+        print("Failed to get current directory\n");
+        return;
+    }
+    ramdisk_inode_t *new_dir = ramdisk_find_inode_by_name(dir, dirname);
+    if (!new_dir || new_dir->type != RAMDISK_INODE_TYPE_DIR) {
+        print("Directory not found\n");
+        return;
+    }
+    current_dir_inode_no = new_dir->inode_no;
+}
+
+static void cmd_rtc(const char* args) {
+    (void)args;
+    handle_rtc_command();
+}
+
+static shell_command_t commands[] = {
+    {"hlp", cmd_hlp},
+    {"ver", cmd_ver},
+    {"hi", cmd_hi},
+    {"cls", cmd_cls},
+    {"say", cmd_say},
+    {"sum", cmd_sum},
+    {"ls", cmd_ls},
+    {"see", cmd_see},
+    {"add", cmd_add},
+    {"rem", cmd_rem},
+    {"mkd", cmd_mkd},
+    {"cd", cmd_cd},
+    {"rtc", cmd_rtc},
+    {NULL, NULL}
+};
 
 void shell_execute(const char* cmd) {
     if (cmd[0] == '\0') return;
@@ -188,188 +423,16 @@ void shell_execute(const char* cmd) {
         args = NULL;
     }
 
-    if (kstrcmp(command, "hlp") == 0) {
-        print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
-    } else if (kstrcmp(command, "ver") == 0) {
-        print("cheeseDOS alpha\n");
-    } else if (kstrcmp(command, "hi") == 0) {
-        print("Hello, world!\n");
-    } else if (kstrcmp(command, "cls") == 0) {
-        clear_screen();
-    } else if (kstrncmp(command, "say", 5) == 0) {
-        if (args) print(args);
-        print("\n");
-    } else if (kstrcmp(command, "sum") == 0) {
-        calc_command(args ? args : "");
-    } else if (kstrcmp(command, "ls") == 0) {
-        ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
-        if (!dir) {
-            print("Failed to get directory inode\n");
-            return;
+    int found = 0;
+    for (int i = 0; commands[i].name != NULL; i++) {
+        if (kstrcmp(command, commands[i].name) == 0) {
+            commands[i].func(args);
+            found = 1;
+            break;
         }
-        ramdisk_readdir(dir, print_name_callback);
-    } else if (kstrncmp(command, "see", 3) == 0) {
-        if (!args) {
-            print("Usage: see <filename>\n");
-            return;
-        }
-        const char *filename = args;
-        ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
-        if (!dir) {
-            print("Failed to get current directory\n");
-            return;
-        }
-        ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
-        if (!file) {
-            print("File not found\n");
-            return;
-        }
-        if (file->type == RAMDISK_INODE_TYPE_DIR) {
-            print("Cannot see directory\n");
-            return;
-        }
-        char buf[256];
-        int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
-        if (read < 0) {
-            print("Error reading file\n");
-            return;
-        }
-        buf[read] = 0;
-        print(buf);
-        print("\n");
-    } else if (kstrncmp(command, "add", 3) == 0) {
-        if (!args) {
-            print("Usage: add <filename> \"text to add\"\n");
-            return;
-        }
-        const char *space_pos = kstrchr(args, ' ');
-        if (!space_pos) {
-            int res = ramdisk_create_file(current_dir_inode_no, args);
-            if (res == 0) {
-                print("File created\n");
-            } else {
-                print("Failed to create file\n");
-            }
-            return;
-        }
-        size_t filename_len = (size_t)(space_pos - args);
-        char filename[INPUT_BUF_SIZE];
-        if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
-        kstrncpy(filename, args, filename_len);
-        filename[filename_len] = '\0';
-
-        const char *text_start = space_pos + 1;
-        char text[INPUT_BUF_SIZE];
-        size_t text_len = kstrlen(text_start);
-        if (text_start[0] == '"' && text_start[text_len - 1] == '"') {
-            kstrncpy(text, text_start + 1, text_len - 2);
-            text[text_len - 2] = '\0';
-        } else {
-            kstrncpy(text, text_start, INPUT_BUF_SIZE - 1);
-            text[INPUT_BUF_SIZE - 1] = '\0';
-        }
-
-        ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
-        if (!dir) {
-            print("Failed to get current directory\n");
-            return;
-        }
-        ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
-        if (!file) {
-            int res = ramdisk_create_file(current_dir_inode_no, filename);
-            if (res != 0) {
-                print("Failed to create file\n");
-                return;
-            }
-            file = ramdisk_find_inode_by_name(dir, filename);
-            if (!file) {
-                print("File creation error\n");
-                return;
-            }
-        }
-
-        char old_content[1024];
-        int old_len = ramdisk_readfile(file, 0, sizeof(old_content) - 1, old_content);
-        if (old_len < 0) old_len = 0;
-        old_content[old_len] = '\0';
-
-        char new_content[2048];
-        kstrncpy(new_content, old_content, sizeof(new_content) - 1);
-        size_t new_len = kstrlen(new_content);
-        if (new_len > 0 && new_content[new_len - 1] != '\n') {
-            new_content[new_len] = '\n';
-            new_content[new_len + 1] = '\0';
-            new_len++;
-        }
-
-        size_t text_len2 = kstrlen(text);
-        if (new_len + text_len2 + 1 < sizeof(new_content)) {
-            kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
-            new_len += text_len2;
-            new_content[new_len] = '\0';
-        } else {
-            print("Text too long to append\n");
-            return;
-        }
-
-        int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
-        if (write_res < 0) {
-            print("Failed to write to file\n");
-            return;
-        }
-
-        print("Text added\n");
-    } else if (kstrncmp(command, "rem", 3) == 0) {
-        if (!args) {
-            print("Usage: rem <filename>\n");
-            return;
-        }
-        int res = ramdisk_remove_file(current_dir_inode_no, args);
-        if (res == 0) {
-            print("File removed\n");
-        } else {
-            print("Failed to remove file\n");
-        }
-    } else if (kstrncmp(command, "mkd", 3) == 0) {
-        if (!args) {
-            print("Usage: mkd <dirname>\n");
-            return;
-        }
-        int res = ramdisk_create_dir(current_dir_inode_no, args);
-        if (res == 0) {
-            print("Directory created\n");
-        } else {
-            print("Failed to create directory\n");
-        }
-    } else if (kstrncmp(command, "cd", 2) == 0) {
-        if (!args) {
-            print("Usage: cd <dirname>\n");
-            return;
-        }
-        const char *dirname = args;
-        if (kstrcmp(dirname, "..") == 0) {
-            if (current_dir_inode_no != 0) {
-                ramdisk_inode_t *cur_dir = ramdisk_iget(current_dir_inode_no);
-                if (cur_dir) current_dir_inode_no = cur_dir->parent_inode_no;
-            }
-            print("Moved up\n");
-            return;
-        }
-        ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
-        if (!dir) {
-            print("Failed to get current directory\n");
-            return;
-        }
-        ramdisk_inode_t *new_dir = ramdisk_find_inode_by_name(dir, dirname);
-        if (!new_dir || new_dir->type != RAMDISK_INODE_TYPE_DIR) {
-            print("Directory not found\n");
-            return;
-        }
-        current_dir_inode_no = new_dir->inode_no;
-    } else if (kstrcmp(command, "rtc") == 0) {
-        handle_rtc_command();
     }
-    else {
+
+    if (!found) {
         print(cmd);
         print(": command not found\n");
     }
