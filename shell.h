@@ -19,10 +19,9 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-#define MAX_CMD_LEN 64
+#define MAX_CMD_LEN 256
 
 void shell_run(void);
-void shell_prompt(void);
 void shell_execute(const char* cmd);
 
 #endif
