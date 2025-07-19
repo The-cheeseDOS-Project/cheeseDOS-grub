@@ -18,10 +18,10 @@
 
 #include "shell.h"
 #include "vga.h"
-#include "keyboard.h"
+#include "keyboard.h" 
 #include "ramdisk.h"
 #include "calc.h"
-#include "string.h" 
+#include "string.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -303,19 +303,23 @@ static void add(const char* args) {
     old_content[old_len] = '\0';
 
     char new_content[2048];
+
     kstrncpy(new_content, old_content, sizeof(new_content) - 1);
+    new_content[sizeof(new_content) - 1] = '\0'; 
     size_t new_len = kstrlen(new_content);
-    if (new_len > 0 && new_content[new_len - 1] != '\n') {
+
+    if (new_len > 0 && new_content[new_len - 1] != '\n' && new_len + 1 < sizeof(new_content)) {
         new_content[new_len] = '\n';
         new_content[new_len + 1] = '\0';
         new_len++;
     }
 
     size_t text_len2 = kstrlen(text);
-    if (new_len + text_len2 + 1 < sizeof(new_content)) {
+
+    if (new_len + text_len2 + 1 <= sizeof(new_content)) { 
         kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
+        new_content[new_len + text_len2] = '\0'; 
         new_len += text_len2;
-        new_content[new_len] = '\0';
     } else {
         print("Text too long to append\n");
         return;
@@ -388,7 +392,7 @@ static void rtc(const char* args) {
     handle_rtc_command();
 }
 
-void clr(const char* arg) { 
+void clr(const char* arg) {
     if (!arg || kstrcmp(arg, "hlp") == 0) {
         set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
         set_text_color(COLOR_GREEN, COLOR_BLACK);   print("green\n");
@@ -397,18 +401,18 @@ void clr(const char* arg) {
         set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
         set_text_color(COLOR_YELLOW, COLOR_BLACK);  print("yellow\n");
         set_text_color(COLOR_WHITE, COLOR_BLACK);   print("white\n");
-        set_text_color(COLOR_WHITE, COLOR_BLACK);   
+        set_text_color(COLOR_WHITE, COLOR_BLACK);
         return;
     }
 
-    if (kstrcmp(arg, "white") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK); 
-    else if (kstrcmp(arg, "grey") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK); 
-    else if (kstrcmp(arg, "blue") == 0) set_text_color(COLOR_BLUE, COLOR_BLACK); 
-    else if (kstrcmp(arg, "green") == 0) set_text_color(COLOR_GREEN, COLOR_BLACK); 
-    else if (kstrcmp(arg, "cyan") == 0) set_text_color(COLOR_CYAN, COLOR_BLACK); 
-    else if (kstrcmp(arg, "red") == 0) set_text_color(COLOR_RED, COLOR_BLACK); 
-    else if (kstrcmp(arg, "magenta") == 0) set_text_color(COLOR_MAGENTA, COLOR_BLACK); 
-    else if (kstrcmp(arg, "yellow") == 0) set_text_color(COLOR_YELLOW, COLOR_BLACK); 
+    if (kstrcmp(arg, "white") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK);
+    else if (kstrcmp(arg, "grey") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK);
+    else if (kstrcmp(arg, "blue") == 0) set_text_color(COLOR_BLUE, COLOR_BLACK);
+    else if (kstrcmp(arg, "green") == 0) set_text_color(COLOR_GREEN, COLOR_BLACK);
+    else if (kstrcmp(arg, "cyan") == 0) set_text_color(COLOR_CYAN, COLOR_BLACK);
+    else if (kstrcmp(arg, "red") == 0) set_text_color(COLOR_RED, COLOR_BLACK);
+    else if (kstrcmp(arg, "magenta") == 0) set_text_color(COLOR_MAGENTA, COLOR_BLACK);
+    else if (kstrcmp(arg, "yellow") == 0) set_text_color(COLOR_YELLOW, COLOR_BLACK);
     else {
         print("Invalid color. Use 'clr hlp' for options.\n");
         return;
@@ -431,7 +435,7 @@ static shell_command_t commands[] = {
     {"mkd", mkd},
     {"cd", cd},
     {"rtc", rtc},
-    {"clr", clr}, 
+    {"clr", clr},
     {NULL, NULL}
 };
 
@@ -471,13 +475,18 @@ void shell_execute(const char* cmd) {
 
 void shell_run() {
     char input[INPUT_BUF_SIZE] = {0};
-    int idx = 0;
-    int cursor_index = 0;
+    int idx = 0; 
+    int cursor_index = 0; 
 
     print_prompt();
 
     while (1) {
-        int c = keyboard_getchar();
+        int c = keyboard_getchar(); 
+
+        if (c == KEY_NULL) {
+
+            continue;
+        }
 
         if (c == KEY_LEFT) {
             if (cursor_index > 0) {
@@ -516,7 +525,18 @@ void shell_run() {
             }
             continue;
         }
-        if (c == '\n') {
+        if (c == KEY_HOME) {
+            cursor_index = 0; 
+            set_cursor_pos(prompt_start_vga_pos + cursor_index);
+            continue;
+        }
+        if (c == KEY_END) {
+            cursor_index = idx; 
+            set_cursor_pos(prompt_start_vga_pos + cursor_index);
+            continue;
+        }
+
+        if (c == KEY_ENTER) { 
             input[idx] = '\0';
             putchar('\n');
             add_history(input);
@@ -527,26 +547,38 @@ void shell_run() {
             print_prompt();
             continue;
         }
-        if (c == '\b') {
+        if (c == KEY_BACKSPACE) { 
             if (cursor_index > 0) {
+
                 for (int i = cursor_index - 1; i < idx - 1; i++) input[i] = input[i + 1];
                 idx--;
                 cursor_index--;
+
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
                 for (int i = cursor_index; i < idx; i++) putchar(input[i]);
-                putchar(' ');
-                set_cursor_pos(prompt_start_vga_pos + cursor_index);
+                putchar(' '); 
+                set_cursor_pos(prompt_start_vga_pos + cursor_index); 
             }
             continue;
         }
-        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
+        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) { 
+
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
-            input[cursor_index] = c;
+            input[cursor_index] = (char)c;
             idx++;
             cursor_index++;
+
             set_cursor_pos(prompt_start_vga_pos);
             for (int i = 0; i < idx; i++) putchar(input[i]);
-            set_cursor_pos(prompt_start_vga_pos + cursor_index);
+
+            for (int i = idx; i < INPUT_BUF_SIZE - 1; i++) { 
+                if ((prompt_start_vga_pos + i) < (get_screen_width() * get_screen_height())) { 
+                    putchar(' ');
+                } else {
+                    break; 
+                }
+            }
+            set_cursor_pos(prompt_start_vga_pos + cursor_index); 
         }
     }
 }
