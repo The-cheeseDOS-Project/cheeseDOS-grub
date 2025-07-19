@@ -20,6 +20,7 @@
 #define RAMDISK_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define RAMDISK_FILENAME_MAX 32
 
@@ -52,5 +53,7 @@ int ramdisk_create_dir(uint32_t parent_dir_inode_no, const char *dirname);
 int ramdisk_remove_file(uint32_t parent_dir_inode_no, const char *filename);
 
 int ramdisk_readfile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, char *buffer);
+
+int ramdisk_get_path(uint32_t inode_no, char *buffer, size_t buffer_size);
 
 #endif
