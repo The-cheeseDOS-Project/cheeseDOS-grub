@@ -21,14 +21,14 @@
 
 #include <stdint.h>
 
-#define COLOR_BLACK   0x0
-#define COLOR_BLUE    0x9
-#define COLOR_GREEN   0xA
-#define COLOR_CYAN    0xB
-#define COLOR_RED     0xC
-#define COLOR_MAGENTA 0xD
-#define COLOR_YELLOW  0xE
-#define COLOR_WHITE   0xF
+#define COLOR_BLACK     0x0
+#define COLOR_BLUE      0x9
+#define COLOR_GREEN     0xA
+#define COLOR_CYAN      0xB
+#define COLOR_RED       0xC
+#define COLOR_MAGENTA   0xD
+#define COLOR_YELLOW    0xE
+#define COLOR_WHITE     0xF
 
 #define VGA_COLOR(fg, bg) ((bg << 4) | (fg & 0x0F))
 
@@ -40,5 +40,7 @@ void set_cursor(int position);
 void set_cursor_pos(int pos);
 int get_cursor();
 void set_text_color(uint8_t fg, uint8_t bg);
+int get_screen_width();  
+int get_screen_height(); 
 
-#endif
+#endif 
