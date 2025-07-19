@@ -207,7 +207,9 @@ void calc_command(const char* expr) {
     int start = pos;
     while (pos < length && expr[pos] >= '0' && expr[pos] <= '9') pos++;
     if (pos == start) {
+        set_text_color(COLOR_RED, COLOR_BLACK);
         print("Invalid expression\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     char buf_a[128];
@@ -217,7 +219,9 @@ void calc_command(const char* expr) {
     big32_parse(&a, buf_a);
     while (pos < length && expr[pos] == ' ') pos++;
     if (pos >= length) {
+        set_text_color(COLOR_RED, COLOR_BLACK);
         print("Invalid operator\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     op = expr[pos++];
@@ -225,7 +229,9 @@ void calc_command(const char* expr) {
     start = pos;
     while (pos < length && expr[pos] >= '0' && expr[pos] <= '9') pos++;
     if (pos == start) {
+        set_text_color(COLOR_RED, COLOR_BLACK);
         print("Invalid expression\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     char buf_b[128];
@@ -243,20 +249,26 @@ void calc_command(const char* expr) {
         big32_mul(&a, &b, &r);
         big32_print(&r);
     } else if (op == '/') {
-        if (b.size == 0) {
+        if (b.size == 0 || (b.size == 1 && b.digits[0] == 0)) { 
+            set_text_color(COLOR_RED, COLOR_BLACK);
             print("Error: Division by zero\n");
+            set_text_color(COLOR_WHITE, COLOR_BLACK); 
             return;
         }
         big32_divmod(&a, &b, &r, &mod);
         big32_print(&r);
     } else if (op == '%') {
-        if (b.size == 0) {
+        if (b.size == 0 || (b.size == 1 && b.digits[0] == 0)) { 
+            set_text_color(COLOR_RED, COLOR_BLACK);
             print("Error: Division by zero\n");
+            set_text_color(COLOR_WHITE, COLOR_BLACK); 
             return;
         }
         big32_divmod(&a, &b, &r, &mod);
         big32_print(&mod);
     } else {
+        set_text_color(COLOR_RED, COLOR_BLACK);
         print("Unknown operator\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
     }
 }
