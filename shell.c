@@ -63,11 +63,15 @@ static void print_uint(uint32_t num) {
 }
 
 static void print_prompt() {
-
     set_text_color(COLOR_YELLOW, COLOR_BLACK);
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (dir) {
-        print(dir->name);
+        char path[INPUT_BUF_SIZE];
+        if (ramdisk_get_path(current_dir_inode_no, path, INPUT_BUF_SIZE) == 0) {
+            print(path);
+        } else {
+            print("/");
+        }
     } else {
         print("/");
     }
@@ -221,7 +225,7 @@ static void ls(const char* args) {
     if (!dir) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to get directory inode\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_readdir(dir, print_name_callback);
@@ -231,7 +235,7 @@ static void see(const char* args) {
     if (!args) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Usage: see <filename>\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     const char *filename = args;
@@ -239,20 +243,20 @@ static void see(const char* args) {
     if (!dir) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("File not found\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     if (file->type == RAMDISK_INODE_TYPE_DIR) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Cannot see directory\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     char buf[256];
@@ -260,7 +264,7 @@ static void see(const char* args) {
     if (read < 0) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Error reading file\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     buf[read] = 0;
@@ -272,7 +276,7 @@ static void add(const char* args) {
     if (!args) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Usage: add <filename> \"text to add\"\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     const char *space_pos = kstrchr(args, ' ');
@@ -283,7 +287,7 @@ static void add(const char* args) {
         } else {
             set_text_color(COLOR_RED, COLOR_BLACK);
             print("Failed to create file\n");
-            set_text_color(default_text_fg_color, default_text_bg_color); 
+            set_text_color(default_text_fg_color, default_text_bg_color);
         }
         return;
     }
@@ -308,7 +312,7 @@ static void add(const char* args) {
     if (!dir) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
@@ -317,14 +321,14 @@ static void add(const char* args) {
         if (res != 0) {
             set_text_color(COLOR_RED, COLOR_BLACK);
             print("Failed to create file\n");
-            set_text_color(default_text_fg_color, default_text_bg_color); 
+            set_text_color(default_text_fg_color, default_text_bg_color);
             return;
         }
         file = ramdisk_find_inode_by_name(dir, filename);
         if (!file) {
             set_text_color(COLOR_RED, COLOR_BLACK);
             print("File creation error\n");
-            set_text_color(default_text_fg_color, default_text_bg_color); 
+            set_text_color(default_text_fg_color, default_text_bg_color);
             return;
             }
     }
@@ -355,7 +359,7 @@ static void add(const char* args) {
     } else {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Text too long to append\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
 
@@ -363,7 +367,7 @@ static void add(const char* args) {
     if (write_res < 0) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to write to file\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
 
@@ -374,7 +378,7 @@ static void rem(const char* args) {
     if (!args) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Usage: rem <filename>\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     int res = ramdisk_remove_file(current_dir_inode_no, args);
@@ -383,7 +387,7 @@ static void rem(const char* args) {
     } else {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to remove file\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
     }
 }
 
@@ -391,7 +395,7 @@ static void mkd(const char* args) {
     if (!args) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Usage: mkd <dirname>\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     int res = ramdisk_create_dir(current_dir_inode_no, args);
@@ -400,7 +404,7 @@ static void mkd(const char* args) {
     } else {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to create directory\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
     }
 }
 
@@ -408,7 +412,7 @@ static void cd(const char* args) {
     if (!args) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Usage: cd <dirname>\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     const char *dirname = args;
@@ -424,14 +428,14 @@ static void cd(const char* args) {
     if (!dir) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_inode_t *new_dir = ramdisk_find_inode_by_name(dir, dirname);
     if (!new_dir || new_dir->type != RAMDISK_INODE_TYPE_DIR) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Directory not found\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     current_dir_inode_no = new_dir->inode_no;
@@ -443,23 +447,22 @@ static void rtc(const char* args) {
 }
 
 void clr(const char* arg) {
-    uint8_t new_fg_color = default_text_fg_color; 
-    uint8_t new_bg_color = default_text_bg_color; 
+    uint8_t new_fg_color = default_text_fg_color;
 
     if (!arg || kstrcmp(arg, "hlp") == 0) {
         set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
-        set_text_color(COLOR_GREEN, COLOR_BLACK);   print("green\n");
-        set_text_color(COLOR_CYAN, COLOR_BLACK);    print("cyan\n");
-        set_text_color(COLOR_RED, COLOR_BLACK);     print("red\n");
+        set_text_color(COLOR_GREEN, COLOR_BLACK);    print("green\n");
+        set_text_color(COLOR_CYAN, COLOR_BLACK);     print("cyan\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);      print("red\n");
         set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
         set_text_color(COLOR_YELLOW, COLOR_BLACK);  print("yellow\n");
-        set_text_color(COLOR_WHITE, COLOR_BLACK);   print("white\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK);    print("white\n");
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
 
     if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
-    else if (kstrcmp(arg, "grey") == 0) new_fg_color = COLOR_WHITE; 
+    else if (kstrcmp(arg, "grey") == 0) new_fg_color = COLOR_WHITE;
     else if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
     else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
     else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
@@ -469,12 +472,12 @@ void clr(const char* arg) {
     else {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print("Invalid color. Use 'clr hlp' for options.\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
 
     default_text_fg_color = new_fg_color;
-    default_text_bg_color = COLOR_BLACK; 
+    default_text_bg_color = COLOR_BLACK;
 
     set_text_color(default_text_fg_color, default_text_bg_color);
     clear_screen();
@@ -531,7 +534,7 @@ void shell_execute(const char* cmd) {
         set_text_color(COLOR_RED, COLOR_BLACK);
         print(cmd);
         print(": command not found\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
     }
 }
 
