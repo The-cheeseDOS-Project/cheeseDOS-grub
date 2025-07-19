@@ -21,11 +21,16 @@
 
 #include <stdint.h>
 
-#define KEY_LEFT  ((int)0x80)
-#define KEY_RIGHT ((int)0x81)
-#define KEY_UP    ((int)0x82)
-#define KEY_DOWN  ((int)0x83)
+#define KEY_NULL        ((int)0x00)   
+#define KEY_BACKSPACE   ((int)'\b')  
+#define KEY_ENTER       ((int)'\n')  
+#define KEY_LEFT        ((int)0x80)   
+#define KEY_RIGHT       ((int)0x81)   
+#define KEY_UP          ((int)0x82)   
+#define KEY_DOWN        ((int)0x83)   
+#define KEY_HOME        ((int)0x84)   
+#define KEY_END         ((int)0x85)   
 
 int keyboard_getchar();
 
-#endif
+#endif 
