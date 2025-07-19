@@ -21,6 +21,7 @@ set -e
 CC=gcc
 AS=as
 LD=ld
+SU=sudo
 CFLAGS="-m32 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy -march=i386"
 LDFLAGS="-m elf_i386 -T link.ld"
 KERNEL=kernel.elf
@@ -71,7 +72,7 @@ function write {
     lsblk
     read -p "Enter target device (e.g. sdb): " dev
     echo "Writing to /dev/$dev ..."
-    sudo dd if="$ISO" of="/dev/$dev" bs=4M status=progress && sync
+    $SU dd if="$ISO" of="/dev/$dev" bs=4M status=progress && sync
 }
 
 function clean {
