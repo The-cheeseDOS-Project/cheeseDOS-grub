@@ -19,7 +19,7 @@ There are many ways to contribute, including:
 
 2. **Clone Your Fork**  
    ```bash
-   git clone https://github.com/blumatrikz/cheeseDOS.git
+   git clone https://github.com/The-cheeseDOS-Project/cheeseDOS.git
    cd cheeseDOS
    ```
 
@@ -50,7 +50,7 @@ There are many ways to contribute, including:
 
     - 1. Follow the existing coding style and conventions in the project.
     - 2. Write clear, readable, and well-commented code.
-    - 3. Code must work and be tested with `make run`.
+    - 3. Code must work and be tested with `./build.sh run`.
     - 4. ONLY Linker Script, Assembly, Makefile, Markdown, headers and C is allowed. 
     - 5. Artificial intelligence generated code is not permitted.
 
