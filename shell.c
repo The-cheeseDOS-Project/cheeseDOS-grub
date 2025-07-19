@@ -389,8 +389,7 @@ static void rtc(const char* args) {
 }
 
 void clr(const char* arg) { 
-    if (!arg || kstrcmp(arg, "hlp") == 0) { 
-        print("Available colors:\n");
+    if (!arg || kstrcmp(arg, "hlp") == 0) {
         set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
         set_text_color(COLOR_GREEN, COLOR_BLACK);   print("green\n");
         set_text_color(COLOR_CYAN, COLOR_BLACK);    print("cyan\n");
