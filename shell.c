@@ -18,7 +18,7 @@
 
 #include "shell.h"
 #include "vga.h"
-#include "keyboard.h" 
+#include "keyboard.h"
 #include "ramdisk.h"
 #include "calc.h"
 #include "string.h"
@@ -60,13 +60,20 @@ static void print_uint(uint32_t num) {
 }
 
 static void print_prompt() {
+
+    set_text_color(COLOR_YELLOW, COLOR_BLACK);
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (dir) {
         print(dir->name);
-        print("> ");
     } else {
-        print("/> ");
+        print("/");
     }
+
+    set_text_color(COLOR_CYAN, COLOR_BLACK);
+    print("> ");
+
+    set_text_color(COLOR_WHITE, COLOR_BLACK);
+
     prompt_start_vga_pos = get_cursor();
 }
 
@@ -209,7 +216,9 @@ static void ls(const char* args) {
     (void)args;
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        print("Failed to get directory inode\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to get directory inode\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     ramdisk_readdir(dir, print_name_callback);
@@ -217,28 +226,38 @@ static void ls(const char* args) {
 
 static void see(const char* args) {
     if (!args) {
-        print("Usage: see <filename>\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Usage: see <filename>\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     const char *filename = args;
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        print("Failed to get current directory\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to get current directory\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
-        print("File not found\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("File not found\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     if (file->type == RAMDISK_INODE_TYPE_DIR) {
-        print("Cannot see directory\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Cannot see directory\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     char buf[256];
     int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
     if (read < 0) {
-        print("Error reading file\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Error reading file\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     buf[read] = 0;
@@ -248,7 +267,9 @@ static void see(const char* args) {
 
 static void add(const char* args) {
     if (!args) {
-        print("Usage: add <filename> \"text to add\"\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Usage: add <filename> \"text to add\"\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     const char *space_pos = kstrchr(args, ' ');
@@ -257,7 +278,9 @@ static void add(const char* args) {
         if (res == 0) {
             print("File created\n");
         } else {
-            print("Failed to create file\n");
+            set_text_color(COLOR_RED, COLOR_BLACK);
+            print("Failed to create file\n"); 
+            set_text_color(COLOR_WHITE, COLOR_BLACK); 
         }
         return;
     }
@@ -280,21 +303,27 @@ static void add(const char* args) {
 
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        print("Failed to get current directory\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to get current directory\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
         int res = ramdisk_create_file(current_dir_inode_no, filename);
         if (res != 0) {
-            print("Failed to create file\n");
+            set_text_color(COLOR_RED, COLOR_BLACK);
+            print("Failed to create file\n"); 
+            set_text_color(COLOR_WHITE, COLOR_BLACK); 
             return;
         }
         file = ramdisk_find_inode_by_name(dir, filename);
         if (!file) {
-            print("File creation error\n");
+            set_text_color(COLOR_RED, COLOR_BLACK);
+            print("File creation error\n"); 
+            set_text_color(COLOR_WHITE, COLOR_BLACK); 
             return;
-        }
+            }
     }
 
     char old_content[1024];
@@ -305,7 +334,7 @@ static void add(const char* args) {
     char new_content[2048];
 
     kstrncpy(new_content, old_content, sizeof(new_content) - 1);
-    new_content[sizeof(new_content) - 1] = '\0'; 
+    new_content[sizeof(new_content) - 1] = '\0';
     size_t new_len = kstrlen(new_content);
 
     if (new_len > 0 && new_content[new_len - 1] != '\n' && new_len + 1 < sizeof(new_content)) {
@@ -316,18 +345,22 @@ static void add(const char* args) {
 
     size_t text_len2 = kstrlen(text);
 
-    if (new_len + text_len2 + 1 <= sizeof(new_content)) { 
+    if (new_len + text_len2 + 1 <= sizeof(new_content)) {
         kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
-        new_content[new_len + text_len2] = '\0'; 
+        new_content[new_len + text_len2] = '\0';
         new_len += text_len2;
     } else {
-        print("Text too long to append\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Text too long to append\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
 
     int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
     if (write_res < 0) {
-        print("Failed to write to file\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to write to file\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
 
@@ -336,33 +369,43 @@ static void add(const char* args) {
 
 static void rem(const char* args) {
     if (!args) {
-        print("Usage: rem <filename>\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Usage: rem <filename>\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     int res = ramdisk_remove_file(current_dir_inode_no, args);
     if (res == 0) {
         print("File removed\n");
     } else {
-        print("Failed to remove file\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to remove file\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
     }
 }
 
 static void mkd(const char* args) {
     if (!args) {
-        print("Usage: mkd <dirname>\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Usage: mkd <dirname>\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     int res = ramdisk_create_dir(current_dir_inode_no, args);
     if (res == 0) {
         print("Directory created\n");
     } else {
-        print("Failed to create directory\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to create directory\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
     }
 }
 
 static void cd(const char* args) {
     if (!args) {
-        print("Usage: cd <dirname>\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Usage: cd <dirname>\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     const char *dirname = args;
@@ -376,12 +419,16 @@ static void cd(const char* args) {
     }
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        print("Failed to get current directory\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Failed to get current directory\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     ramdisk_inode_t *new_dir = ramdisk_find_inode_by_name(dir, dirname);
     if (!new_dir || new_dir->type != RAMDISK_INODE_TYPE_DIR) {
-        print("Directory not found\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Directory not found\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
     current_dir_inode_no = new_dir->inode_no;
@@ -414,7 +461,9 @@ void clr(const char* arg) {
     else if (kstrcmp(arg, "magenta") == 0) set_text_color(COLOR_MAGENTA, COLOR_BLACK);
     else if (kstrcmp(arg, "yellow") == 0) set_text_color(COLOR_YELLOW, COLOR_BLACK);
     else {
-        print("Invalid color. Use 'clr hlp' for options.\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);
+        print("Invalid color. Use 'clr hlp' for options.\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
         return;
     }
 
@@ -468,20 +517,22 @@ void shell_execute(const char* cmd) {
     }
 
     if (!found) {
+        set_text_color(COLOR_RED, COLOR_BLACK);
         print(cmd);
-        print(": command not found\n");
+        print(": command not found\n"); 
+        set_text_color(COLOR_WHITE, COLOR_BLACK); 
     }
 }
 
 void shell_run() {
     char input[INPUT_BUF_SIZE] = {0};
-    int idx = 0; 
-    int cursor_index = 0; 
+    int idx = 0;
+    int cursor_index = 0;
 
     print_prompt();
 
     while (1) {
-        int c = keyboard_getchar(); 
+        int c = keyboard_getchar();
 
         if (c == KEY_NULL) {
 
@@ -526,17 +577,17 @@ void shell_run() {
             continue;
         }
         if (c == KEY_HOME) {
-            cursor_index = 0; 
+            cursor_index = 0;
             set_cursor_pos(prompt_start_vga_pos + cursor_index);
             continue;
         }
         if (c == KEY_END) {
-            cursor_index = idx; 
+            cursor_index = idx;
             set_cursor_pos(prompt_start_vga_pos + cursor_index);
             continue;
         }
 
-        if (c == KEY_ENTER) { 
+        if (c == KEY_ENTER) {
             input[idx] = '\0';
             putchar('\n');
             add_history(input);
@@ -547,7 +598,7 @@ void shell_run() {
             print_prompt();
             continue;
         }
-        if (c == KEY_BACKSPACE) { 
+        if (c == KEY_BACKSPACE) {
             if (cursor_index > 0) {
 
                 for (int i = cursor_index - 1; i < idx - 1; i++) input[i] = input[i + 1];
@@ -556,12 +607,12 @@ void shell_run() {
 
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
                 for (int i = cursor_index; i < idx; i++) putchar(input[i]);
-                putchar(' '); 
-                set_cursor_pos(prompt_start_vga_pos + cursor_index); 
+                putchar(' ');
+                set_cursor_pos(prompt_start_vga_pos + cursor_index);
             }
             continue;
         }
-        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) { 
+        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
 
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
             input[cursor_index] = (char)c;
@@ -571,14 +622,14 @@ void shell_run() {
             set_cursor_pos(prompt_start_vga_pos);
             for (int i = 0; i < idx; i++) putchar(input[i]);
 
-            for (int i = idx; i < INPUT_BUF_SIZE - 1; i++) { 
-                if ((prompt_start_vga_pos + i) < (get_screen_width() * get_screen_height())) { 
+            for (int i = idx; i < INPUT_BUF_SIZE - 1; i++) {
+                if ((prompt_start_vga_pos + i) < (get_screen_width() * get_screen_height())) {
                     putchar(' ');
                 } else {
-                    break; 
+                    break;
                 }
             }
-            set_cursor_pos(prompt_start_vga_pos + cursor_index); 
+            set_cursor_pos(prompt_start_vga_pos + cursor_index);
         }
     }
 }
