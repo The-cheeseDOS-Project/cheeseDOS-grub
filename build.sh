@@ -1,7 +1,5 @@
-#!/bin/bash
-
 # cheeseDOS - My x86 DOS
-# Copyright (C) 2025  Connor Thomson
+# Copyright (C) 2025  Connor Thomson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10,11 +8,11 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 set -e
 
@@ -22,72 +20,104 @@ CC=gcc
 AS=as
 LD=ld
 SU=sudo
-CFLAGS="-m32 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy -march=i386"
-LDFLAGS="-m elf_i386 -T link.ld"
-KERNEL=kernel.elf
-ISO=cdos.iso
-ISO_DIR=iso
+
+INCLUDES="-Isrc/kernel \
+-Isrc/kernel/shell \
+-Isrc/kernel/ramdisk \
+-Isrc/drivers \
+-Isrc/drivers/vga \
+-Isrc/drivers/keyboard \
+-Isrc/libraries/string \
+-Isrc/calc \
+-Isrc/rtc"
+
+CFLAGS="-m32 -ffreestanding -O2 -Wall -Wextra \
+-fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy \
+-march=i386 $INCLUDES"
+
+LDFLAGS="-m elf_i386 -T src/build/link.ld"
+
+BUILD_DIR=build
+ISO_DIR="$BUILD_DIR/iso"
 BOOT_DIR="$ISO_DIR/boot"
 GRUB_DIR="$BOOT_DIR/grub"
-GRUB_CFG=grub.cfg
-OBJS=(boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o calc.o string.o rtc.o)
+
+KERNEL="$BUILD_DIR/kernel.elf"
+ISO="cdos.iso"
+GRUB_CFG=src/boot/grub.cfg
+
+OBJS=(
+  "$BUILD_DIR/boot.o"
+  "$BUILD_DIR/kernel.o"
+  "$BUILD_DIR/shell.o"
+  "$BUILD_DIR/vga.o"
+  "$BUILD_DIR/keyboard.o"
+  "$BUILD_DIR/ramdisk.o"
+  "$BUILD_DIR/calc.o"
+  "$BUILD_DIR/string.o"
+  "$BUILD_DIR/rtc.o"
+)
 
 build_object() {
-    $CC $CFLAGS -c "$1" -o "$2"
+  $CC $CFLAGS -c "$1" -o "$2"
 }
 
 function all {
-    podman build -t cheesedos-build .
-    podman run --rm -v "$(pwd)":/src:z -w /src cheesedos-build bash "$0" build
+  podman build -t cheesedos-build src/build
+  podman run --rm -v "$(pwd)":/src:z -w /src cheesedos-build bash "$0" build
 }
 
 function build {
-    clean
-    $AS --32 -o boot.o boot.S
-    build_object kernel.c kernel.o
-    build_object shell.c shell.o
-    build_object vga.c vga.o
-    build_object keyboard.c keyboard.o
-    build_object ramdisk.c ramdisk.o
-    build_object calc.c calc.o
-    build_object string.c string.o
-    build_object rtc.c rtc.o
-    $LD $LDFLAGS -o $KERNEL "${OBJS[@]}"
-    mkdir -p "$GRUB_DIR"
-    cp "$GRUB_CFG" "$GRUB_DIR/"
-    cp "$KERNEL" "$BOOT_DIR/"
-    grub-mkrescue \
-        --directory=/usr/lib/grub/i386-pc \
-        --install-modules="multiboot" \
-        --fonts="" --themes="" --locales="" \
-        -o "$ISO" \
-        "$ISO_DIR"
-    rm -rf "$ISO_DIR"
-    rm -f "$KERNEL" "${OBJS[@]}"
+  clean
+  mkdir -p "$BUILD_DIR"
+
+  $AS --32 -o "$BUILD_DIR/boot.o" src/boot/boot.S
+  build_object src/kernel/kernel.c "$BUILD_DIR/kernel.o"
+  build_object src/kernel/shell/shell.c "$BUILD_DIR/shell.o"
+  build_object src/drivers/vga/vga.c "$BUILD_DIR/vga.o"
+  build_object src/drivers/keyboard/keyboard.c "$BUILD_DIR/keyboard.o"
+  build_object src/kernel/ramdisk/ramdisk.c "$BUILD_DIR/ramdisk.o"
+  build_object src/calc/calc.c "$BUILD_DIR/calc.o"
+  build_object src/libraries/string/string.c "$BUILD_DIR/string.o"
+  build_object src/rtc/rtc.c "$BUILD_DIR/rtc.o"
+
+  $LD $LDFLAGS -o "$KERNEL" "${OBJS[@]}"
+
+  mkdir -p "$GRUB_DIR"
+  cp "$GRUB_CFG" "$GRUB_DIR/"
+  cp "$KERNEL" "$BOOT_DIR/"
+
+  grub-mkrescue \
+    --directory=/usr/lib/grub/i386-pc \
+    --install-modules="multiboot" \
+    --fonts="" --themes="" --locales="" \
+    -o "$ISO" \
+    "$ISO_DIR"
+
+  rm -rf "$BUILD_DIR"
 }
 
 function run {
-    qemu-system-i386 -drive file="$ISO",format=raw -m 3M -cpu 486
+  qemu-system-i386 -drive file="$ISO",format=raw -m 3M -cpu 486
 }
 
 function write {
-    lsblk
-    read -p "Enter target device (e.g. sdb): " dev
-    echo "Writing to /dev/$dev ..."
-    $SU dd if="$ISO" of="/dev/$dev" bs=4M status=progress && sync
+  lsblk
+  read -p "Enter target device (e.g. sdb): " dev
+  echo "Writing to /dev/$dev ..."
+  $SU dd if="$ISO" of="/dev/$dev" bs=4M status=progress && sync
 }
 
 function clean {
-    rm -rf "$ISO_DIR"
-    rm -f "$ISO" "$KERNEL" "${OBJS[@]}"
+  rm -rf "$BUILD_DIR" "$ISO"
 }
 
 case "$1" in
-    "") all ;;
-    all) all ;;
-    build) build ;;
-    run) run ;;
-    write) write ;;
-    clean) clean ;;
-    *) echo "Usage: $0 {all|build|run|write|clean}" ;;
+  "") all ;;
+  all) all ;;
+  build) build ;;
+  run) run ;;
+  write) write ;;
+  clean) clean ;;
+  *) echo "Usage: $0 {all|build|run|write|clean}" ;;
 esac
