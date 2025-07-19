@@ -42,12 +42,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
           podman
-
+      
       - name: Build with Podman
         run: |
-        sudo chmod +x ./build.sh
-        ./build.sh
-
+         sudo chmod +x ./build.sh
+         ./build.sh
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
