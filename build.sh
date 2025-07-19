@@ -62,6 +62,8 @@ function build {
         --fonts="" --themes="" --locales="" \
         -o "$ISO" \
         "$ISO_DIR"
+    rm -rf "$ISO_DIR"
+    rm -f "$KERNEL" "${OBJS[@]}"
 }
 
 function run {
