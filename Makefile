@@ -30,7 +30,11 @@ OBJS = boot.o kernel.o shell.o vga.o keyboard.o ramdisk.o calc.o string.o rtc.o
 RM = rm -f
 RMDIR = rm -rf
 
-all: clean $(ISO)
+all:
+	podman build -t cheesedos-build .
+	podman run --rm -v "$(CURDIR)":/src:z -w /src cheesedos-build make build
+
+build: clean $(ISO)
 
 boot.o: boot.S
 	$(AS) --32 -o $@ $<
@@ -86,4 +90,4 @@ clean:
 	$(RMDIR) $(ISO_DIR)
 	$(RM) $(ISO) $(KERNEL) $(OBJS)
 
-.PHONY: all clean write run
+.PHONY: all build clean write run

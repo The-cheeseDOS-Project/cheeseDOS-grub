@@ -37,33 +37,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Cache APT metadata
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/apt
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/Makefile') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
-      - name: Install dependencies
+      - name: Install Podman
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            gcc-multilib \
-            grub-pc-bin \
-            xorriso \
-            mtools
+          podman
 
-      - name: Cache build output
-        uses: actions/cache@v4
-        with:
-          path: build/
-          key: ${{ runner.os }}-build-${{ hashFiles('**/*') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
 
-      - name: Build ISO using Makefile
+      - name: Build with Podman
         run: make
 
       - name: Upload ISO artifact
@@ -72,7 +53,7 @@ jobs:
           name: cheeseDOS-iso
           path: cdos.iso
 
-      - name: Generate unique 6-char Base62 tag
+      - name: Generate build number
         id: gentag
         run: |
           CHARS=( {0..9} {A..Z} {a..z} )
