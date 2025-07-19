@@ -15,17 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
- 
+
 #include <stdint.h>
-#include "vga.h"
-#include "keyboard.h"
+#include "vga.h" 
+#include "keyboard.h" 
 
 #define VGA_MEMORY ((uint16_t*)0xB8000)
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
-#define WHITE_ON_BLACK 0x0F
 
 static int cursor = 0;
+static uint8_t current_fg = COLOR_WHITE; 
+static uint8_t current_bg = COLOR_BLACK; 
+
+static uint8_t get_vga_color() {
+    return VGA_COLOR(current_fg, current_bg);
+}
 
 static inline void outb(uint16_t port, uint8_t val) {
     __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
@@ -49,8 +54,9 @@ void set_cursor(int position) {
 }
 
 void scroll_if_needed() {
+
     if (cursor < SCREEN_WIDTH * SCREEN_HEIGHT) return;
-    
+
     for (int row = 1; row < SCREEN_HEIGHT; row++) {
         for (int col = 0; col < SCREEN_WIDTH; col++) {
             VGA_MEMORY[(row - 1) * SCREEN_WIDTH + col] =
@@ -58,22 +64,25 @@ void scroll_if_needed() {
         }
     }
 
+    uint8_t color_byte = get_vga_color();
     for (int col = 0; col < SCREEN_WIDTH; col++) {
         VGA_MEMORY[(SCREEN_HEIGHT - 1) * SCREEN_WIDTH + col] =
-            ' ' | (WHITE_ON_BLACK << 8);
+            ' ' | (color_byte << 8);
     }
 
     cursor -= SCREEN_WIDTH;
 }
 
 void putchar(char c) {
+    uint8_t color_byte = get_vga_color();
+
     if (c == '\n') {
         cursor += SCREEN_WIDTH - (cursor % SCREEN_WIDTH);
     } else if (c == '\b') {
         if (cursor > 0) cursor--;
-        VGA_MEMORY[cursor] = ' ' | (WHITE_ON_BLACK << 8);
+        VGA_MEMORY[cursor] = ' ' | (color_byte << 8); 
     } else {
-        VGA_MEMORY[cursor++] = c | (WHITE_ON_BLACK << 8);
+        VGA_MEMORY[cursor++] = c | (color_byte << 8);
     }
 
     scroll_if_needed();
@@ -85,8 +94,9 @@ void print(const char* str) {
 }
 
 void clear_screen() {
+    uint8_t color_byte = get_vga_color();
     for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
-        VGA_MEMORY[i] = ' ' | (WHITE_ON_BLACK << 8);
+        VGA_MEMORY[i] = ' ' | (color_byte << 8); 
     }
     cursor = 0;
     set_cursor(cursor);
@@ -105,4 +115,10 @@ void set_cursor_pos(int pos) {
         cursor = pos;
         set_cursor(cursor);
     }
+}
+
+void set_text_color(uint8_t fg, uint8_t bg) {
+    current_fg = fg & 0x0F; 
+    current_bg = bg & 0x0F; 
+
 }
