@@ -8,7 +8,7 @@
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even even implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -21,9 +21,10 @@
 #include "keyboard.h"
 #include "ramdisk.h"
 #include "calc.h"
-#include "string.h"
+#include "string.h" 
 #include <stddef.h>
 #include <stdint.h>
+
 #include "rtc.h"
 
 #define INPUT_BUF_SIZE 256
@@ -177,7 +178,7 @@ typedef struct {
 
 static void hlp(const char* args) {
     (void)args;
-    print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc\n");
+    print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc, clr\n");
 }
 
 static void ver(const char* args) {
@@ -387,6 +388,36 @@ static void rtc(const char* args) {
     handle_rtc_command();
 }
 
+void clr(const char* arg) { 
+    if (!arg || kstrcmp(arg, "hlp") == 0) { 
+        print("Available colors:\n");
+        set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
+        set_text_color(COLOR_GREEN, COLOR_BLACK);   print("green\n");
+        set_text_color(COLOR_CYAN, COLOR_BLACK);    print("cyan\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);     print("red\n");
+        set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
+        set_text_color(COLOR_YELLOW, COLOR_BLACK);  print("yellow\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK);   print("white\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK);   
+        return;
+    }
+
+    if (kstrcmp(arg, "white") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK); 
+    else if (kstrcmp(arg, "grey") == 0) set_text_color(COLOR_WHITE, COLOR_BLACK); 
+    else if (kstrcmp(arg, "blue") == 0) set_text_color(COLOR_BLUE, COLOR_BLACK); 
+    else if (kstrcmp(arg, "green") == 0) set_text_color(COLOR_GREEN, COLOR_BLACK); 
+    else if (kstrcmp(arg, "cyan") == 0) set_text_color(COLOR_CYAN, COLOR_BLACK); 
+    else if (kstrcmp(arg, "red") == 0) set_text_color(COLOR_RED, COLOR_BLACK); 
+    else if (kstrcmp(arg, "magenta") == 0) set_text_color(COLOR_MAGENTA, COLOR_BLACK); 
+    else if (kstrcmp(arg, "yellow") == 0) set_text_color(COLOR_YELLOW, COLOR_BLACK); 
+    else {
+        print("Invalid color. Use 'clr hlp' for options.\n");
+        return;
+    }
+
+    print("Color set.\n");
+}
+
 static shell_command_t commands[] = {
     {"hlp", hlp},
     {"ver", ver},
@@ -401,6 +432,7 @@ static shell_command_t commands[] = {
     {"mkd", mkd},
     {"cd", cd},
     {"rtc", rtc},
+    {"clr", clr}, 
     {NULL, NULL}
 };
 
