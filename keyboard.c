@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ 
 #include <stdint.h>
-#include "vga.h"
-#include "keyboard.h"
+#include "vga.h" 
+#include "keyboard.h" 
 
 static const char scancode_ascii[128] = {
     0, 27, '1','2','3','4','5','6','7','8','9','0','-','=','\b',
@@ -56,44 +56,50 @@ int keyboard_getchar() {
     uint8_t sc;
     static int shift = 0;
     static int caps_lock = 0;
-    static int num_lock = 1;
+    static int num_lock = 1; 
 
     while (1) {
+
         while (!(inb(0x64) & 1));
-        sc = inb(0x60);
+        sc = inb(0x60); 
 
         if (sc == 0xE0) {
+
             while (!(inb(0x64) & 1));
             sc = inb(0x60);
-            if (sc == 0x4B) return KEY_LEFT;
-            if (sc == 0x4D) return KEY_RIGHT;
-            if (sc == 0x48) return KEY_UP;
-            if (sc == 0x50) return KEY_DOWN;
+
+            if (sc == 0x4B) return KEY_LEFT;    
+            if (sc == 0x4D) return KEY_RIGHT;   
+            if (sc == 0x48) return KEY_UP;      
+            if (sc == 0x50) return KEY_DOWN;    
+            if (sc == 0x47) return KEY_HOME;    
+            if (sc == 0x4F) return KEY_END;     
+
             continue;
         }
 
-        if (sc == 0x2A || sc == 0x36) {
+        if (sc == 0x2A || sc == 0x36) { 
             shift = 1;
-            continue;
+            continue; 
         }
 
-        if (sc == 0xAA || sc == 0xB6) {
+        if (sc == 0xAA || sc == 0xB6) { 
             shift = 0;
-            continue;
+            continue; 
         }
 
-        if (sc == 0x3A) {
+        if (sc == 0x3A) { 
             caps_lock = !caps_lock;
-            continue;
+            continue; 
         }
 
-        if (sc == 0x45) {
+        if (sc == 0x45) { 
             num_lock = !num_lock;
-            continue;
+            continue; 
         }
 
         if (!(sc & 0x80)) {
-            sc &= 0x7F;
+            sc &= 0x7F; 
 
             if (num_lock && numpad_ascii[sc]) {
                 return numpad_ascii[sc];
@@ -103,15 +109,16 @@ int keyboard_getchar() {
                 char c = scancode_ascii[sc];
 
                 if (c >= 'a' && c <= 'z') {
-                    if (shift ^ caps_lock) {
-                        c -= 32;
+                    if (shift ^ caps_lock) { 
+                        c -= 32; 
                     }
-                } else if (shift) {
+                } else if (shift) { 
                     c = scancode_ascii_shift[sc];
                 }
 
-                return c;
+                return c; 
             }
         }
+
     }
 }

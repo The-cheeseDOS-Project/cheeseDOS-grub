@@ -17,7 +17,7 @@
  */
 
 #include <stdint.h>
-#include "vga.h" 
+#include "vga.h"
 #include "keyboard.h" 
 
 #define VGA_MEMORY ((uint16_t*)0xB8000)
@@ -25,8 +25,8 @@
 #define SCREEN_HEIGHT 25
 
 static int cursor = 0;
-static uint8_t current_fg = COLOR_WHITE; 
-static uint8_t current_bg = COLOR_BLACK; 
+static uint8_t current_fg = COLOR_WHITE;
+static uint8_t current_bg = COLOR_BLACK;
 
 static uint8_t get_vga_color() {
     return VGA_COLOR(current_fg, current_bg);
@@ -43,18 +43,20 @@ static inline uint8_t inb(uint16_t port) {
 }
 
 void set_cursor(int position) {
+
     outb(0x3D4, 0x0A);
-    outb(0x3D5, 0x00);
+    outb(0x3D5, 0x00); 
     outb(0x3D4, 0x0B);
-    outb(0x3D5, 0x0F);
+    outb(0x3D5, 0x0F); 
+
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(position & 0xFF));
+
     outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t)((position >> 8) & 0xFF));
 }
 
 void scroll_if_needed() {
-
     if (cursor < SCREEN_WIDTH * SCREEN_HEIGHT) return;
 
     for (int row = 1; row < SCREEN_HEIGHT; row++) {
@@ -77,16 +79,19 @@ void putchar(char c) {
     uint8_t color_byte = get_vga_color();
 
     if (c == '\n') {
+
         cursor += SCREEN_WIDTH - (cursor % SCREEN_WIDTH);
     } else if (c == '\b') {
+
         if (cursor > 0) cursor--;
-        VGA_MEMORY[cursor] = ' ' | (color_byte << 8); 
+        VGA_MEMORY[cursor] = ' ' | (color_byte << 8);
     } else {
+
         VGA_MEMORY[cursor++] = c | (color_byte << 8);
     }
 
-    scroll_if_needed();
-    set_cursor(cursor);
+    scroll_if_needed(); 
+    set_cursor(cursor); 
 }
 
 void print(const char* str) {
@@ -96,7 +101,7 @@ void print(const char* str) {
 void clear_screen() {
     uint8_t color_byte = get_vga_color();
     for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
-        VGA_MEMORY[i] = ' ' | (color_byte << 8); 
+        VGA_MEMORY[i] = ' ' | (color_byte << 8);
     }
     cursor = 0;
     set_cursor(cursor);
@@ -111,6 +116,7 @@ int get_cursor() {
 }
 
 void set_cursor_pos(int pos) {
+
     if (pos >= 0 && pos < SCREEN_WIDTH * SCREEN_HEIGHT) {
         cursor = pos;
         set_cursor(cursor);
@@ -120,5 +126,12 @@ void set_cursor_pos(int pos) {
 void set_text_color(uint8_t fg, uint8_t bg) {
     current_fg = fg & 0x0F; 
     current_bg = bg & 0x0F; 
+}
 
+int get_screen_width() {
+    return SCREEN_WIDTH;
+}
+
+int get_screen_height() {
+    return SCREEN_HEIGHT;
 }
