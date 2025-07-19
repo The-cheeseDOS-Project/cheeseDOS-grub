@@ -1,0 +1,89 @@
+# cheeseDOS - My x86 DOS
+# Copyright (C) 2025  Connor Thomson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Build and Release cheeseDOS ISO
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - LICENSE
+      - .gitignore
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          podman
+      
+      - name: Build with Podman
+        run: |
+         sudo chmod +x ./build.sh
+         ./build.sh
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cheeseDOS-iso
+          path: cdos.iso
+
+      - name: Generate build number
+        id: gentag
+        run: |
+          CHARS=( {0..9} {A..Z} {a..z} )
+          base62() {
+            local num=$1
+            local out=""
+            while [ "$num" -gt 0 ]; do
+              out="${CHARS[$((num % 62))]}$out"
+              num=$((num / 62))
+            done
+            echo "$out"
+          }
+
+          EXISTING_TAGS=$(git ls-remote --tags origin | awk -F/ '{print $NF}')
+          for i in {1..100}; do
+            RAND=$(od -An -N4 -tu4 < /dev/urandom | tr -d ' ')
+            TAG=$(base62 "$RAND")
+            if ! echo "$EXISTING_TAGS" | grep -qx "$TAG"; then
+              echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "Failed to generate unique tag" >&2
+          exit 1
+
+      - name: Create GitHub Release and Upload ISO
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.gentag.outputs.tag }}"
+          TITLE="cheeseDOS alpha (build: $TAG)"
+          gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
