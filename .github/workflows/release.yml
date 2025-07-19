@@ -45,7 +45,9 @@ jobs:
 
 
       - name: Build with Podman
-        run: ./build.sh
+        run: |
+        sudo chmod +x ./build.sh && \
+        ./build.sh
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
