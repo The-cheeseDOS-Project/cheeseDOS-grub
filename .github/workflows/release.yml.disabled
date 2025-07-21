@@ -25,6 +25,7 @@ on:
       - LICENSE
       - .gitignore
       - '.github/ISSUE_TEMPLATE/**'
+      - build.sh
 
 permissions:
   contents: write
