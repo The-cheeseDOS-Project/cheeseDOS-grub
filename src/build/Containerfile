@@ -18,7 +18,8 @@ FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt install -y --no-install-recommends \
+RUN apt update -y && \
+    apt install -y --no-install-recommends \
         gcc \
         gcc-multilib \
         grub-pc-bin \
