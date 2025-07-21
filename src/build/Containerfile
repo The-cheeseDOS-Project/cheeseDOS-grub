@@ -18,15 +18,12 @@ FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
+RUN apt install -y --no-install-recommends \
+        gcc \
         gcc-multilib \
         grub-pc-bin \
         xorriso \
-        mtools && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        mtools
 
 WORKDIR /
 CMD ["make build && chmod 775 *"]
