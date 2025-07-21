@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ 
 #ifndef VGA_H
 #define VGA_H
 
@@ -43,4 +43,6 @@ void set_text_color(uint8_t fg, uint8_t bg);
 int get_screen_width();  
 int get_screen_height(); 
 
-#endif 
+void vga_clear_chars(int start_pos, int count);
+
+#endif

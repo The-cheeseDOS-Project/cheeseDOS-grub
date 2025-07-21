@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ 
 #include "shell.h"
 #include "vga.h"
 #include "keyboard.h"
@@ -39,9 +39,6 @@ static uint32_t current_dir_inode_no = 0;
 
 static uint8_t default_text_fg_color = COLOR_WHITE;
 static uint8_t default_text_bg_color = COLOR_BLACK;
-
-void putchar(char c);
-int ramdisk_writefile(ramdisk_inode_t *file, uint32_t offset, uint32_t size, const char *buffer);
 
 static void print_uint(uint32_t num) {
     char buf[12];
@@ -80,8 +77,6 @@ static void print_prompt() {
     print("> ");
 
     set_text_color(default_text_fg_color, default_text_bg_color);
-
-    prompt_start_vga_pos = get_cursor();
 }
 
 static void add_history(const char *cmd) {
@@ -102,19 +97,19 @@ static void add_history(const char *cmd) {
 }
 
 static void clear_input_line(int len) {
-    set_cursor_pos(prompt_start_vga_pos);
-    for (int i = 0; i < len; i++) putchar(' ');
-    set_cursor_pos(prompt_start_vga_pos);
+    vga_clear_chars(prompt_start_vga_pos, len);
+    set_cursor_pos(prompt_start_vga_pos); 
 }
 
 static void load_history_line(char *input, int *idx, int *cursor_index, int pos) {
     if (pos < 0 || pos >= history_count) return;
-    clear_input_line(*idx);
+    clear_input_line(get_screen_width()); 
     kstrncpy(input, history[pos], INPUT_BUF_SIZE - 1);
     input[INPUT_BUF_SIZE - 1] = '\0';
     *idx = kstrlen(input);
     *cursor_index = *idx;
-    print(input);
+    set_cursor_pos(prompt_start_vga_pos); 
+    print(input); 
 }
 
 static ramdisk_inode_t *ramdisk_find_inode_by_name(ramdisk_inode_t *dir, const char *name) {
@@ -543,13 +538,13 @@ void shell_run() {
     int idx = 0;
     int cursor_index = 0;
 
-    print_prompt();
+    print_prompt(); 
+    prompt_start_vga_pos = get_cursor();
 
     while (1) {
         int c = keyboard_getchar();
 
         if (c == KEY_NULL) {
-
             continue;
         }
 
@@ -581,7 +576,8 @@ void shell_run() {
                 history_view_pos++;
                 load_history_line(input, &idx, &cursor_index, history_view_pos);
             } else {
-                clear_input_line(idx);
+
+                clear_input_line(get_screen_width()); 
                 idx = 0;
                 cursor_index = 0;
                 input[0] = '\0';
@@ -603,47 +599,55 @@ void shell_run() {
 
         if (c == KEY_ENTER) {
             input[idx] = '\0';
-            putchar('\n');
+            putchar('\n'); 
             add_history(input);
             shell_execute(input);
+
+            if (get_cursor() % get_screen_width() != 0) {
+                putchar('\n');
+            }
+
             idx = 0;
             cursor_index = 0;
             input[0] = '\0';
-            print_prompt();
+
+            print_prompt(); 
+            prompt_start_vga_pos = get_cursor(); 
             continue;
         }
         if (c == KEY_BACKSPACE) {
             if (cursor_index > 0) {
 
-                for (int i = cursor_index - 1; i < idx - 1; i++) input[i] = input[i + 1];
+                for (int i = cursor_index - 1; i < idx; i++) {
+                    input[i] = input[i + 1];
+                }
                 idx--;
                 cursor_index--;
+                input[idx] = '\0'; 
 
-                set_cursor_pos(prompt_start_vga_pos + cursor_index);
-                for (int i = cursor_index; i < idx; i++) putchar(input[i]);
-                putchar(' ');
+                clear_input_line(get_screen_width()); 
+
+                set_cursor_pos(prompt_start_vga_pos); 
+                print(input); 
+
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
             }
             continue;
         }
-        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
+        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) { 
 
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
             input[cursor_index] = (char)c;
             idx++;
             cursor_index++;
+            input[idx] = '\0'; 
+
+            clear_input_line(get_screen_width()); 
 
             set_cursor_pos(prompt_start_vga_pos);
-            for (int i = 0; i < idx; i++) putchar(input[i]);
+            print(input);
 
-            for (int i = idx; i < INPUT_BUF_SIZE - 1; i++) {
-                if ((prompt_start_vga_pos + i) < (get_screen_width() * get_screen_height())) {
-                    putchar(' ');
-                } else {
-                    break;
-                }
-            }
-            set_cursor_pos(prompt_start_vga_pos + cursor_index);
+            set_cursor_pos(prompt_start_vga_pos + cursor_index); 
         }
     }
 }

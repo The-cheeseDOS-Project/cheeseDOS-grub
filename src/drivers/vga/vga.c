@@ -15,16 +15,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ 
 #include <stdint.h>
 #include "vga.h"
-#include "keyboard.h" 
+#include "keyboard.h"
 
 #define VGA_MEMORY ((uint16_t*)0xB8000)
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
+#define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-static int cursor = 0;
+static int vga_cursor_x = 0;
+static int vga_cursor_y = 0;
 static uint8_t current_fg = COLOR_WHITE;
 static uint8_t current_bg = COLOR_BLACK;
 
@@ -43,11 +45,10 @@ static inline uint8_t inb(uint16_t port) {
 }
 
 void set_cursor(int position) {
-
     outb(0x3D4, 0x0A);
-    outb(0x3D5, 0x00); 
+    outb(0x3D5, 0x00);
     outb(0x3D4, 0x0B);
-    outb(0x3D5, 0x0F); 
+    outb(0x3D5, 0x0F);
 
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(position & 0xFF));
@@ -56,9 +57,7 @@ void set_cursor(int position) {
     outb(0x3D5, (uint8_t)((position >> 8) & 0xFF));
 }
 
-void scroll_if_needed() {
-    if (cursor < SCREEN_WIDTH * SCREEN_HEIGHT) return;
-
+void scroll_screen() {
     for (int row = 1; row < SCREEN_HEIGHT; row++) {
         for (int col = 0; col < SCREEN_WIDTH; col++) {
             VGA_MEMORY[(row - 1) * SCREEN_WIDTH + col] =
@@ -71,27 +70,40 @@ void scroll_if_needed() {
         VGA_MEMORY[(SCREEN_HEIGHT - 1) * SCREEN_WIDTH + col] =
             ' ' | (color_byte << 8);
     }
-
-    cursor -= SCREEN_WIDTH;
 }
 
 void putchar(char c) {
     uint8_t color_byte = get_vga_color();
+    int current_linear_pos;
 
     if (c == '\n') {
-
-        cursor += SCREEN_WIDTH - (cursor % SCREEN_WIDTH);
+        vga_cursor_x = 0;
+        vga_cursor_y++;
     } else if (c == '\b') {
-
-        if (cursor > 0) cursor--;
-        VGA_MEMORY[cursor] = ' ' | (color_byte << 8);
+        if (vga_cursor_x > 0) {
+            vga_cursor_x--;
+        } else if (vga_cursor_y > 0) {
+            vga_cursor_y--;
+            vga_cursor_x = SCREEN_WIDTH - 1;
+        }
+        VGA_MEMORY[vga_cursor_y * SCREEN_WIDTH + vga_cursor_x] = ' ' | (color_byte << 8);
     } else {
-
-        VGA_MEMORY[cursor++] = c | (color_byte << 8);
+        VGA_MEMORY[vga_cursor_y * SCREEN_WIDTH + vga_cursor_x] = c | (color_byte << 8);
+        vga_cursor_x++;
     }
 
-    scroll_if_needed(); 
-    set_cursor(cursor); 
+    if (vga_cursor_x >= SCREEN_WIDTH) {
+        vga_cursor_x = 0;
+        vga_cursor_y++;
+    }
+
+    if (vga_cursor_y >= SCREEN_HEIGHT) {
+        scroll_screen();
+        vga_cursor_y = SCREEN_HEIGHT - 1;
+    }
+
+    current_linear_pos = vga_cursor_y * SCREEN_WIDTH + vga_cursor_x;
+    set_cursor(current_linear_pos);
 }
 
 void print(const char* str) {
@@ -100,11 +112,12 @@ void print(const char* str) {
 
 void clear_screen() {
     uint8_t color_byte = get_vga_color();
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+    for (int i = 0; i < SCREEN_SIZE; i++) {
         VGA_MEMORY[i] = ' ' | (color_byte << 8);
     }
-    cursor = 0;
-    set_cursor(cursor);
+    vga_cursor_x = 0;
+    vga_cursor_y = 0;
+    set_cursor(0);
 }
 
 void backspace() {
@@ -112,20 +125,22 @@ void backspace() {
 }
 
 int get_cursor() {
-    return cursor;
+    return vga_cursor_y * SCREEN_WIDTH + vga_cursor_x;
 }
 
 void set_cursor_pos(int pos) {
+    if (pos < 0) pos = 0;
+    if (pos >= SCREEN_SIZE) pos = SCREEN_SIZE - 1;
 
-    if (pos >= 0 && pos < SCREEN_WIDTH * SCREEN_HEIGHT) {
-        cursor = pos;
-        set_cursor(cursor);
-    }
+    vga_cursor_x = pos % SCREEN_WIDTH;
+    vga_cursor_y = pos / SCREEN_WIDTH;
+
+    set_cursor(pos);
 }
 
 void set_text_color(uint8_t fg, uint8_t bg) {
-    current_fg = fg & 0x0F; 
-    current_bg = bg & 0x0F; 
+    current_fg = fg & 0x0F;
+    current_bg = bg & 0x0F;
 }
 
 int get_screen_width() {
@@ -134,4 +149,14 @@ int get_screen_width() {
 
 int get_screen_height() {
     return SCREEN_HEIGHT;
+}
+
+void vga_clear_chars(int start_pos, int count) {
+    uint8_t color_byte = get_vga_color();
+    int end_pos = start_pos + count;
+    if (end_pos > SCREEN_SIZE) end_pos = SCREEN_SIZE;
+
+    for (int i = start_pos; i < end_pos; i++) {
+        VGA_MEMORY[i] = ' ' | (color_byte << 8);
+    }
 }
