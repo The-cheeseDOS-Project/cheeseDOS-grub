@@ -30,7 +30,7 @@ cheeseDOS alpha
 ## CheeseDOS Features
 
 - 512B CheeseFS RAM Disk
-- Run`s on computers from 1985 (if they have a 386 and 2MB RAM) and onwards
+- Run's on computers from 1985 (if they have a 386 and 2MB RAM) and onwards
 - Quite a bit of commands
 - AND MORE!
 
