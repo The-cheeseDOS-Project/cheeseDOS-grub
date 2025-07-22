@@ -38,6 +38,12 @@ cheeseDOS alpha
 
 For instructions on building from source, refer to the [Build and Run Guide](https://github.com/The-cheeseDOS-Project/cheeseDOS/wiki/Build-and-Run).
 
+Compiling cheeseDOS alpha Build: [25t8sL](https://github.com/The-cheeseDOS-Project/cheeseDOS/releases/tag/25t8sL) on [Fedora 42](https://fedoramagazine.org/announcing-fedora-linux-42):
+
+<video width="320" height="240" controls>
+    <source src="https://github.com/user-attachments/assets/8269e284-b7c4-4d1f-acf5-ecaaa48e218d" type="video/mp4">
+</video>
+
 ## System Requirements (for booting on real hardware)
 
 | Component   | Requirement                                                        |
