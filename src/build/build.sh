@@ -83,6 +83,7 @@ function build {
   build_object src/rtc/rtc.c "$BUILD_DIR/rtc.o"
 
   $LD $LDFLAGS -o "$KERNEL" "${OBJS[@]}"
+  strip -sv "$KERNEL"
 
   mkdir -p "$GRUB_DIR"
   cp "$GRUB_CFG" "$GRUB_DIR/"
