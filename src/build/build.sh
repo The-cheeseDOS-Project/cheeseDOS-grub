@@ -63,8 +63,9 @@ build_object() {
 }
 
 function all {
-  podman build -t cheesedos-build src/build
-  podman run --rm -v "$(pwd)":/src:z -w /src cheesedos-build bash "$0" build
+  podman rm --force cheesedos-builder &>/dev/null || true
+  podman build --no-cache -t cheesedos-build src/build
+  podman run --name cheesedos-builder --rm -v "$(pwd)":/src:z -w /src cheesedos-build bash "$0" build
 }
 
 function build {
@@ -98,6 +99,7 @@ function build {
 }
 
 function run {
+  all
   qemu-system-i386 -drive file="$ISO",format=raw -m 3M -cpu 486
 }
 
