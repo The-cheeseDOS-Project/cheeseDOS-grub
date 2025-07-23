@@ -25,8 +25,6 @@ cheeseDOS alpha
 />
 ```
 
-## Thank you so much for 130 Unique visitors!
-
 ## CheeseDOS Features
 
 - 512B CheeseFS RAM Disk
