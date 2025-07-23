@@ -184,21 +184,21 @@ static uint8_t ansi_to_vga_color(int ansi_color) {
         case 30: return COLOR_BLACK;
         case 31: return COLOR_RED;
         case 32: return COLOR_GREEN;
-        case 33: return COLOR_BROWN; 
+        case 33: return COLOR_BROWN;
         case 34: return COLOR_BLUE;
         case 35: return COLOR_MAGENTA;
         case 36: return COLOR_CYAN;
-        case 37: return COLOR_LIGHT_GREY; 
+        case 37: return COLOR_LIGHT_GREY;
 
-        case 90: return COLOR_DARK_GREY; 
+        case 90: return COLOR_DARK_GREY;
         case 91: return COLOR_LIGHT_RED;
         case 92: return COLOR_LIGHT_GREEN;
-        case 93: return COLOR_LIGHT_BROWN; 
+        case 93: return COLOR_LIGHT_BROWN;
         case 94: return COLOR_LIGHT_BLUE;
         case 95: return COLOR_LIGHT_MAGENTA;
         case 96: return COLOR_LIGHT_CYAN;
-        case 97: return COLOR_WHITE; 
-        default: return COLOR_LIGHT_GREY; 
+        case 97: return COLOR_WHITE;
+        default: return COLOR_LIGHT_GREY;
     }
 }
 
@@ -214,7 +214,7 @@ static uint8_t ansi_bg_to_vga_color(int ansi_color) {
         case 46: return COLOR_CYAN;
         case 47: return COLOR_LIGHT_GREY;
 
-        case 100: return COLOR_DARK_GREY; 
+        case 100: return COLOR_DARK_GREY;
         case 101: return COLOR_LIGHT_RED;
         case 102: return COLOR_LIGHT_GREEN;
         case 103: return COLOR_LIGHT_BROWN;
@@ -222,7 +222,7 @@ static uint8_t ansi_bg_to_vga_color(int ansi_color) {
         case 105: return COLOR_LIGHT_MAGENTA;
         case 106: return COLOR_LIGHT_CYAN;
         case 107: return COLOR_WHITE;
-        default: return COLOR_BLACK; 
+        default: return COLOR_BLACK;
     }
 }
 
@@ -233,10 +233,10 @@ static void print_ansi(const char* ansi_str) {
 
     while (*ansi_str) {
         if (*ansi_str == '\033' && *(ansi_str + 1) == '[') {
-            ansi_str += 2; 
+            ansi_str += 2;
             int code_val = 0;
             int attribute_count = 0;
-            int attributes[5]; 
+            int attributes[5];
 
             for (int i = 0; i < 5; i++) {
                 attributes[i] = 0;
@@ -250,7 +250,7 @@ static void print_ansi(const char* ansi_str) {
             if (*ansi_str == ';') {
                 attributes[attribute_count++] = code_val;
                 code_val = 0;
-                ansi_str++; 
+                ansi_str++;
                 while (*ansi_str != 'm' && *ansi_str != '\0') {
                     if (*ansi_str >= '0' && *ansi_str <= '9') {
                         code_val = code_val * 10 + (*ansi_str - '0');
@@ -260,7 +260,7 @@ static void print_ansi(const char* ansi_str) {
                     }
                     ansi_str++;
                 }
-                if (attribute_count < 5) attributes[attribute_count++] = code_val; 
+                if (attribute_count < 5) attributes[attribute_count++] = code_val;
             } else if (*ansi_str == 'm') {
                 if (attribute_count < 5) attributes[attribute_count++] = code_val;
             }
@@ -270,41 +270,41 @@ static void print_ansi(const char* ansi_str) {
                 for (int i = 0; i < attribute_count; i++) {
                     int attr = attributes[i];
 
-                    if (attr == 0) { 
-                        current_fg = COLOR_LIGHT_GREY; 
+                    if (attr == 0) {
+                        current_fg = COLOR_LIGHT_GREY;
                         current_bg = COLOR_BLACK;
-                    } else if (attr == 1) { 
+                    } else if (attr == 1) {
 
-                    } else if (attr == 5) { 
+                    } else if (attr == 5) {
 
-                    } else if (attr == 7) { 
+                    } else if (attr == 7) {
                         uint8_t temp = current_fg;
                         current_fg = current_bg;
                         current_bg = temp;
-                    } else if (attr == 8) { 
+                    } else if (attr == 8) {
                         current_fg = current_bg;
-                    } else if (attr >= 30 && attr <= 37) { 
+                    } else if (attr >= 30 && attr <= 37) {
                         current_fg = ansi_to_vga_color(attr);
-                    } else if (attr >= 40 && attr <= 47) { 
+                    } else if (attr >= 40 && attr <= 47) {
                         current_bg = ansi_bg_to_vga_color(attr);
-                    } else if (attr >= 90 && attr <= 97) { 
-                        current_fg = ansi_to_vga_color(attr); 
-                    } else if (attr >= 100 && attr <= 107) { 
-                        current_bg = ansi_bg_to_vga_color(attr); 
-                    } else if (attr == 25) { 
+                    } else if (attr >= 90 && attr <= 97) {
+                        current_fg = ansi_to_vga_color(attr);
+                    } else if (attr >= 100 && attr <= 107) {
+                        current_bg = ansi_bg_to_vga_color(attr);
+                    } else if (attr == 25) {
 
-                    } else if (attr == 27) { 
+                    } else if (attr == 27) {
 
-                    } else if (attr == 28) { 
+                    } else if (attr == 28) {
 
                     }
                 }
                 set_text_color(current_fg, current_bg);
-                ansi_str++; 
-            } else if (*ansi_str == 's') { 
-                ansi_str++; 
-            } else if (*ansi_str == 'u') { 
-                ansi_str++; 
+                ansi_str++;
+            } else if (*ansi_str == 's') {
+                ansi_str++;
+            } else if (*ansi_str == 'u') {
+                ansi_str++;
             } else {
 
                 while (*ansi_str != 'm' && *ansi_str != '\0') {
@@ -321,9 +321,9 @@ static void print_ansi(const char* ansi_str) {
 }
 
 static void ban(const char* args) {
-    (void)args; 
+    (void)args;
     clear_screen();
-    set_cursor_pos(0); 
+    set_cursor_pos(0);
 
     print_ansi((const char*)_binary_src_banner_banner_txt_start);
 
@@ -604,61 +604,58 @@ static void rtc(const char* args) {
 }
 
 void clr(const char* arg) {
-// TODO: Make clr work with the new VGA driver
-    print("Im working on getting clr working again with the new VGA driver :)\n"); // Remove when done
-    print("Left by Connor Thomson on Jul 22, 2025\n"); // Remove when done
-    print("<bluMATRIKZ@gmail.com>\n"); // Remove when done
-//    uint8_t new_fg_color = default_text_fg_color;
+    uint8_t new_fg_color = default_text_fg_color;
 
-//    if (!arg || kstrcmp(arg, "hlp") == 0) {
-//        set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
-//        set_text_color(COLOR_LIGHT_BLUE, COLOR_BLACK); print("lightblue\n");
-//        set_text_color(COLOR_GREEN, COLOR_BLACK);    print("green\n");
-//        set_text_color(COLOR_LIGHT_GREEN, COLOR_BLACK); print("lightgreen\n");
-//        set_text_color(COLOR_CYAN, COLOR_BLACK);     print("cyan\n");
-//        set_text_color(COLOR_LIGHT_CYAN, COLOR_BLACK);  print("lightcyan\n");
-//        set_text_color(COLOR_RED, COLOR_BLACK);      print("red\n");
-//        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);   print("lightred\n");
-//        set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
-//        set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK); print("lightmagenta\n");
-//        set_text_color(COLOR_BROWN, COLOR_BLACK);  print("yellow\n");
-//        set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK); print("lightyellow\n");
-//        set_text_color(COLOR_DARK_GREY, COLOR_BLACK); print("darkgrey\n");
-//        set_text_color(COLOR_LIGHT_GREY, COLOR_BLACK); print("lightgrey\n");
-//        set_text_color(COLOR_WHITE, COLOR_BLACK);    print("white\n");
-//        return;
-//    }
-
-//    if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
-//    else if (kstrcmp(arg, "grey") == 0) new_fg_color = COLOR_LIGHT_GREY;
-//    else if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
-//    else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
-//    else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
-//    else if (kstrcmp(arg, "red") == 0) new_fg_color = COLOR_RED;
-//    else if (kstrcmp(arg, "magenta") == 0) new_fg_color = COLOR_MAGENTA;
-//    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_BROWN;
-//    else if (kstrcmp(arg, "lightblue") == 0) new_fg_color = COLOR_LIGHT_BLUE;
-//    else if (kstrcmp(arg, "lightgreen") == 0) new_fg_color = COLOR_LIGHT_GREEN;
-//    else if (kstrcmp(arg, "lightcyan") == 0) new_fg_color = COLOR_LIGHT_CYAN;
-//    else if (kstrcmp(arg, "lightred") == 0) new_fg_color = COLOR_LIGHT_RED;
-//    else if (kstrcmp(arg, "lightmagenta") == 0) new_fg_color = COLOR_LIGHT_MAGENTA;
-//    else if (kstrcmp(arg, "lightyellow") == 0) new_fg_color = COLOR_LIGHT_BROWN;
-//    else if (kstrcmp(arg, "lightwhite") == 0) new_fg_color = COLOR_WHITE;
-//    else if (kstrcmp(arg, "darkgrey") == 0) new_fg_color = COLOR_DARK_GREY;
-//    else {
-//        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-//        print("Invalid color. Use 'clr hlp' for options.\n");
-//        set_text_color(default_text_fg_color, default_text_bg_color);
-//        return;
-//    }
-
-//    default_text_fg_color = new_fg_color;
-//    default_text_bg_color = COLOR_BLACK;
-
-//    set_text_color(default_text_fg_color, default_text_bg_color);
-//    clear_screen();
-//    print("Color set.\n");
+    if (!arg || kstrcmp(arg, "hlp") == 0) {
+        set_text_color(COLOR_BLUE, COLOR_BLACK);        print("blue\n");
+        set_text_color(COLOR_GREEN, COLOR_BLACK);       print("green\n");
+        set_text_color(COLOR_CYAN, COLOR_BLACK);        print("cyan\n");
+        set_text_color(COLOR_RED, COLOR_BLACK);         print("red\n");
+        set_text_color(COLOR_MAGENTA, COLOR_BLACK);     print("magenta\n");
+        set_text_color(COLOR_BROWN, COLOR_BLACK);       print("brown\n");
+        set_text_color(COLOR_LIGHT_GREY, COLOR_BLACK);  print("lightgrey\n");
+        set_text_color(COLOR_DARK_GREY, COLOR_BLACK);   print("darkgrey\n");
+        set_text_color(COLOR_LIGHT_BLUE, COLOR_BLACK);  print("lightblue\n");
+        set_text_color(COLOR_LIGHT_GREEN, COLOR_BLACK); print("lightgreen\n");
+        set_text_color(COLOR_LIGHT_CYAN, COLOR_BLACK);  print("lightcyan\n");
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);   print("lightred\n");
+        set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK); print("lightmagenta\n");
+        set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK); print("lightbrown\n");
+        set_text_color(COLOR_WHITE, COLOR_BLACK);       print("white\n");
+        set_text_color(default_text_fg_color, default_text_bg_color); 
+        print("\nUsage: clr <color>\n");
+        return;
     }
+
+         if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
+    else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
+    else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
+    else if (kstrcmp(arg, "red") == 0) new_fg_color = COLOR_RED;
+    else if (kstrcmp(arg, "magenta") == 0) new_fg_color = COLOR_MAGENTA;
+    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_BROWN; 
+    else if (kstrcmp(arg, "lightgrey") == 0) new_fg_color = COLOR_LIGHT_GREY;
+    else if (kstrcmp(arg, "darkgrey") == 0) new_fg_color = COLOR_DARK_GREY;
+    else if (kstrcmp(arg, "lightblue") == 0) new_fg_color = COLOR_LIGHT_BLUE;
+    else if (kstrcmp(arg, "lightgreen") == 0) new_fg_color = COLOR_LIGHT_GREEN;
+    else if (kstrcmp(arg, "lightcyan") == 0) new_fg_color = COLOR_LIGHT_CYAN;
+    else if (kstrcmp(arg, "lightred") == 0) new_fg_color = COLOR_LIGHT_RED;
+    else if (kstrcmp(arg, "lightmagenta") == 0) new_fg_color = COLOR_LIGHT_MAGENTA;
+    else if (kstrcmp(arg, "lightyellow") == 0) new_fg_color = COLOR_LIGHT_BROWN; 
+    else if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
+    else {
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Invalid color. Use 'clr hlp' for options.\n");
+        set_text_color(default_text_fg_color, default_text_bg_color);
+        return;
+    }
+
+    default_text_fg_color = new_fg_color;
+    default_text_bg_color = COLOR_BLACK; 
+
+    set_text_color(default_text_fg_color, default_text_bg_color);
+    clear_screen();
+    print("Color set.\n");
+}
 
 static shell_command_t commands[] = {
     {"hlp", hlp},
