@@ -2,7 +2,7 @@
  * cheeseDOS - My x86 DOS
  * Copyright (C) 2025  Connor Thomson
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is free software: you can DARKREDistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
@@ -21,22 +21,21 @@
 
 #include <stdint.h>
 
-// TODO: Make the names better
 #define COLOR_BLACK         0x0
-#define COLOR_BLUE          0x1
-#define COLOR_GREEN         0x2
-#define COLOR_CYAN          0x3
-#define COLOR_RED           0x4
-#define COLOR_MAGENTA       0x5
+#define COLOR_DARKBLUE      0x1
+#define COLOR_DARKGREEN     0x2
+#define COLOR_DARKCYAN      0x3
+#define COLOR_DARKRED       0x4
+#define COLOR_PURPLE        0x5
 #define COLOR_BROWN         0x6 
 #define COLOR_LIGHT_GREY    0x7
 #define COLOR_DARK_GREY     0x8
-#define COLOR_LIGHT_BLUE    0x9
-#define COLOR_LIGHT_GREEN   0xA
-#define COLOR_LIGHT_CYAN    0xB
-#define COLOR_LIGHT_RED     0xC
-#define COLOR_LIGHT_MAGENTA 0xD
-#define COLOR_LIGHT_BROWN   0xE 
+#define COLOR_BLUE          0x9
+#define COLOR_GREEN         0xA
+#define COLOR_CYAN          0xB
+#define COLOR_RED           0xC
+#define COLOR_MAGENTA       0xD
+#define COLOR_YELLOW        0xE 
 #define COLOR_WHITE         0xF 
 
 #define VGA_COLOR(fg, bg) ((bg << 4) | (fg & 0x0F))
