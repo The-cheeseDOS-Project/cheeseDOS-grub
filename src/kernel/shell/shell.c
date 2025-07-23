@@ -43,17 +43,14 @@ static uint8_t default_text_bg_color = COLOR_BLACK;
 static void print_uint(uint32_t num) {
     char buf[12];
     int i = 0;
-
     if (num == 0) {
         putchar('0');
         return;
     }
-
     while (num > 0) {
         buf[i++] = (num % 10) + '0';
         num /= 10;
     }
-
     for (int j = i - 1; j >= 0; j--) {
         putchar(buf[j]);
     }
@@ -72,10 +69,8 @@ static void print_prompt() {
     } else {
         print("/");
     }
-
     set_text_color(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print("> ");
-
     set_text_color(default_text_fg_color, default_text_bg_color);
 }
 
@@ -139,21 +134,16 @@ static void print_name_callback(const char *name, uint32_t inode) {
 static void handle_rtc_command() {
     rtc_time_t current_time;
     read_rtc_time(&current_time);
-
     if (current_time.month < 10) putchar('0');
     print_uint(current_time.month);
     putchar('/');
-
     if (current_time.day < 10) putchar('0');
     print_uint(current_time.day);
     putchar('/');
-
     print_uint(current_time.year);
     print(" ");
-
     uint8_t display_hour = current_time.hour;
     const char* ampm = "AM";
-
     if (display_hour >= 12) {
         ampm = "PM";
         if (display_hour > 12) {
@@ -162,15 +152,12 @@ static void handle_rtc_command() {
     } else if (display_hour == 0) {
         display_hour = 12;
     }
-
     if (display_hour < 10) putchar('0');
     print_uint(display_hour);
     putchar(':');
-
     if (current_time.minute < 10) putchar('0');
     print_uint(current_time.minute);
     putchar(':');
-
     if (current_time.second < 10) putchar('0');
     print_uint(current_time.second);
     putchar(' ');
@@ -180,7 +167,6 @@ static void handle_rtc_command() {
 
 static uint8_t ansi_to_vga_color(int ansi_color) {
     switch (ansi_color) {
-
         case 30: return COLOR_BLACK;
         case 31: return COLOR_RED;
         case 32: return COLOR_GREEN;
@@ -189,7 +175,6 @@ static uint8_t ansi_to_vga_color(int ansi_color) {
         case 35: return COLOR_MAGENTA;
         case 36: return COLOR_CYAN;
         case 37: return COLOR_LIGHT_GREY;
-
         case 90: return COLOR_DARK_GREY;
         case 91: return COLOR_LIGHT_RED;
         case 92: return COLOR_LIGHT_GREEN;
@@ -204,7 +189,6 @@ static uint8_t ansi_to_vga_color(int ansi_color) {
 
 static uint8_t ansi_bg_to_vga_color(int ansi_color) {
     switch (ansi_color) {
-
         case 40: return COLOR_BLACK;
         case 41: return COLOR_RED;
         case 42: return COLOR_GREEN;
@@ -213,7 +197,6 @@ static uint8_t ansi_bg_to_vga_color(int ansi_color) {
         case 45: return COLOR_MAGENTA;
         case 46: return COLOR_CYAN;
         case 47: return COLOR_LIGHT_GREY;
-
         case 100: return COLOR_DARK_GREY;
         case 101: return COLOR_LIGHT_RED;
         case 102: return COLOR_LIGHT_GREEN;
@@ -230,23 +213,19 @@ static void print_ansi(const char* ansi_str) {
     uint8_t current_fg = COLOR_WHITE;
     uint8_t current_bg = COLOR_BLACK;
     set_text_color(current_fg, current_bg);
-
     while (*ansi_str) {
         if (*ansi_str == '\033' && *(ansi_str + 1) == '[') {
             ansi_str += 2;
             int code_val = 0;
             int attribute_count = 0;
             int attributes[5];
-
             for (int i = 0; i < 5; i++) {
                 attributes[i] = 0;
             }
-
             while (*ansi_str >= '0' && *ansi_str <= '9') {
                 code_val = code_val * 10 + (*ansi_str - '0');
                 ansi_str++;
             }
-
             if (*ansi_str == ';') {
                 attributes[attribute_count++] = code_val;
                 code_val = 0;
@@ -264,19 +243,14 @@ static void print_ansi(const char* ansi_str) {
             } else if (*ansi_str == 'm') {
                 if (attribute_count < 5) attributes[attribute_count++] = code_val;
             }
-
             if (*ansi_str == 'm') {
-
                 for (int i = 0; i < attribute_count; i++) {
                     int attr = attributes[i];
-
                     if (attr == 0) {
                         current_fg = COLOR_LIGHT_GREY;
                         current_bg = COLOR_BLACK;
                     } else if (attr == 1) {
-
                     } else if (attr == 5) {
-
                     } else if (attr == 7) {
                         uint8_t temp = current_fg;
                         current_fg = current_bg;
@@ -292,11 +266,8 @@ static void print_ansi(const char* ansi_str) {
                     } else if (attr >= 100 && attr <= 107) {
                         current_bg = ansi_bg_to_vga_color(attr);
                     } else if (attr == 25) {
-
                     } else if (attr == 27) {
-
                     } else if (attr == 28) {
-
                     }
                 }
                 set_text_color(current_fg, current_bg);
@@ -306,14 +277,12 @@ static void print_ansi(const char* ansi_str) {
             } else if (*ansi_str == 'u') {
                 ansi_str++;
             } else {
-
                 while (*ansi_str != 'm' && *ansi_str != '\0') {
                     ansi_str++;
                 }
                 if (*ansi_str == 'm') ansi_str++;
             }
         } else {
-
             putchar(*ansi_str);
             ansi_str++;
         }
@@ -324,11 +293,8 @@ static void ban(const char* args) {
     (void)args;
     clear_screen();
     set_cursor_pos(0);
-
     print_ansi((const char*)_binary_src_banner_banner_txt_start);
-
     set_text_color(default_text_fg_color, default_text_bg_color);
-
     int key;
     print("\nPress 'e' to exit to shell");
     while (1) {
@@ -416,7 +382,7 @@ static void see(const char* args) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-    char buf[256];
+    char buf[2048];
     int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
     if (read < 0) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
@@ -429,26 +395,33 @@ static void see(const char* args) {
     print("\n");
 }
 
+
 static void add(const char* args) {
+    print("`add` is broken right now :(\n"); // Remove when fixed
+    print("Left by Connor Thomson on Jul 22, 2025\n"); // Remove when fixed
+    print("<bluMATRIKZ@gmail.com>"); // Remove when fixed
+// TODO: Fix add command so it does not only put 4 things in the file
+/*
     if (!args) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: add <filename> [text to add]\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-
-    const char *filename_end = kstrchr(args, ' ');
+    const char *space_pos = kstrchr(args, ' ');
     char filename[INPUT_BUF_SIZE];
-    if (filename_end) {
-        size_t filename_len = (size_t)(filename_end - args);
+    const char *text_to_add = "";
+    if (space_pos) {
+        size_t filename_len = (size_t)(space_pos - args);
         if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
         kstrncpy(filename, args, filename_len);
         filename[filename_len] = '\0';
+        text_to_add = space_pos + 1;
+        while (*text_to_add == ' ') text_to_add++;
     } else {
         kstrncpy(filename, args, INPUT_BUF_SIZE - 1);
         filename[INPUT_BUF_SIZE - 1] = '\0';
     }
-
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
@@ -456,11 +429,9 @@ static void add(const char* args) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-    
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
-        int res = ramdisk_create_file(current_dir_inode_no, filename);
-        if (res != 0) {
+        if (ramdisk_create_file(current_dir_inode_no, filename) != 0) {
             set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
             print("Failed to create file\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
@@ -474,81 +445,40 @@ static void add(const char* args) {
             return;
         }
     }
-
-    char old_content[2048];
-    int old_len = ramdisk_readfile(file, 0, sizeof(old_content) - 1, old_content);
-    if (old_len < 0) old_len = 0;
-    old_content[old_len] = '\0';
-
-    char new_content[2048]; 
-    kstrncpy(new_content, old_content, sizeof(new_content) - 1);
-    new_content[sizeof(new_content) - 1] = '\0';
-    size_t current_content_len = kstrlen(new_content);
-
-    if (filename_end) { 
-        const char *text_ptr = filename_end + 1; 
-        
-        char buffer[INPUT_BUF_SIZE];
-        size_t buffer_len;
-        const char *word_start;
-
-        while (*text_ptr != '\0') {
-            while (*text_ptr == ' ') { 
-                text_ptr++;
-            }
-            if (*text_ptr == '\0') break; 
-
-            word_start = text_ptr;
-            while (*text_ptr != ' ' && *text_ptr != '\0') {
-                text_ptr++;
-            }
-            buffer_len = (size_t)(text_ptr - word_start);
-            
-            if (buffer_len >= INPUT_BUF_SIZE) buffer_len = INPUT_BUF_SIZE - 1;
-            kstrncpy(buffer, word_start, buffer_len);
-            buffer[buffer_len] = '\0';
-
-            if (current_content_len > 0 && new_content[current_content_len - 1] != '\n') {
-                if (current_content_len + 1 < sizeof(new_content)) {
-                    new_content[current_content_len] = '\n';
-                    new_content[current_content_len + 1] = '\0';
-                    current_content_len++;
-                } else {
-                    set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-                    print("File content too large for buffer\n");
-                    set_text_color(default_text_fg_color, default_text_bg_color);
-                    return;
-                }
-            }
-
-            if (current_content_len + kstrlen(buffer) + 1 <= sizeof(new_content)) { 
-                kstrncpy(new_content + current_content_len, buffer, sizeof(new_content) - current_content_len - 1);
-                current_content_len += kstrlen(buffer);
-                new_content[current_content_len] = '\0'; 
-            } else {
-                set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-                print("Text too long to append\n");
-                set_text_color(default_text_fg_color, default_text_bg_color);
-                return;
+    char new_content[4096];
+    size_t content_length = 0;
+    int bytes_read = ramdisk_readfile(file, 0, sizeof(new_content) - 1, new_content);
+    if (bytes_read > 0) {
+        content_length = bytes_read;
+        new_content[content_length] = '\0';
+        if (content_length > 0 && new_content[content_length - 1] != '\n') {
+            if (content_length < sizeof(new_content) - 1) {
+                new_content[content_length++] = '\n';
             }
         }
-    } else { 
-        if (current_content_len == 0) {
-            print("File created but no content added.\n");
+    }
+    size_t text_len = kstrlen(text_to_add);
+    if (text_len > 0) {
+        if (content_length + text_len < sizeof(new_content)) {
+            kstrcpy(new_content + content_length, text_to_add);
+            content_length += text_len;
+        } else {
+            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+            print("Error: Text too large for buffer\n");
+            set_text_color(default_text_fg_color, default_text_bg_color);
             return;
         }
     }
-
-    int write_res = ramdisk_writefile(file, 0, (uint32_t)current_content_len, new_content);
-    if (write_res < 0) {
+    if (ramdisk_writefile(file, 0, content_length, new_content) < 0) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to write to file\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-
-    print("Text added\n");
+    print("Text successfully added to file\n");
+*/
 }
+
 
 static void rem(const char* args) {
     if (!args) {
@@ -622,9 +552,8 @@ static void rtc(const char* args) {
     handle_rtc_command();
 }
 
-void clr(const char* arg) {
+static void clr(const char* arg) {
     uint8_t new_fg_color = default_text_fg_color;
-
     if (!arg || kstrcmp(arg, "hlp") == 0) {
         set_text_color(COLOR_BLUE, COLOR_BLACK);        print("blue\n");
         set_text_color(COLOR_GREEN, COLOR_BLACK);       print("green\n");
@@ -645,13 +574,12 @@ void clr(const char* arg) {
         print("\nUsage: clr <color>\n");
         return;
     }
-
-         if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
+    if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
     else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
     else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
     else if (kstrcmp(arg, "red") == 0) new_fg_color = COLOR_RED;
     else if (kstrcmp(arg, "magenta") == 0) new_fg_color = COLOR_MAGENTA;
-    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_BROWN; 
+    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_BROWN;
     else if (kstrcmp(arg, "lightgrey") == 0) new_fg_color = COLOR_LIGHT_GREY;
     else if (kstrcmp(arg, "darkgrey") == 0) new_fg_color = COLOR_DARK_GREY;
     else if (kstrcmp(arg, "lightblue") == 0) new_fg_color = COLOR_LIGHT_BLUE;
@@ -659,7 +587,7 @@ void clr(const char* arg) {
     else if (kstrcmp(arg, "lightcyan") == 0) new_fg_color = COLOR_LIGHT_CYAN;
     else if (kstrcmp(arg, "lightred") == 0) new_fg_color = COLOR_LIGHT_RED;
     else if (kstrcmp(arg, "lightmagenta") == 0) new_fg_color = COLOR_LIGHT_MAGENTA;
-    else if (kstrcmp(arg, "lightyellow") == 0) new_fg_color = COLOR_LIGHT_BROWN; 
+    else if (kstrcmp(arg, "lightyellow") == 0) new_fg_color = COLOR_LIGHT_BROWN;
     else if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
     else {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
@@ -667,10 +595,8 @@ void clr(const char* arg) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-
     default_text_fg_color = new_fg_color;
-    default_text_bg_color = COLOR_BLACK; 
-
+    default_text_bg_color = COLOR_BLACK;
     set_text_color(default_text_fg_color, default_text_bg_color);
     clear_screen();
     print("Color set.\n");
@@ -697,10 +623,8 @@ static shell_command_t commands[] = {
 
 void shell_execute(const char* cmd) {
     if (cmd[0] == '\0') return;
-
     char command[INPUT_BUF_SIZE];
     const char *args;
-
     args = kstrchr(cmd, ' ');
     if (args) {
         size_t command_len = (size_t)(args - cmd);
@@ -713,7 +637,6 @@ void shell_execute(const char* cmd) {
         command[INPUT_BUF_SIZE - 1] = '\0';
         args = NULL;
     }
-
     int found = 0;
     for (int i = 0; commands[i].name != NULL; i++) {
         if (kstrcmp(command, commands[i].name) == 0) {
@@ -722,7 +645,6 @@ void shell_execute(const char* cmd) {
             break;
         }
     }
-
     if (!found) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print(cmd);
@@ -735,17 +657,13 @@ void shell_run() {
     char input[INPUT_BUF_SIZE] = {0};
     int idx = 0;
     int cursor_index = 0;
-
     print_prompt();
     prompt_start_vga_pos = get_cursor();
-
     while (1) {
         int c = keyboard_getchar();
-
         if (c == KEY_NULL) {
             continue;
         }
-
         if (c == KEY_LEFT) {
             if (cursor_index > 0) {
                 cursor_index--;
@@ -774,7 +692,6 @@ void shell_run() {
                 history_view_pos++;
                 load_history_line(input, &idx, &cursor_index, history_view_pos);
             } else {
-
                 clear_input_line(get_screen_width());
                 idx = 0;
                 cursor_index = 0;
@@ -794,57 +711,45 @@ void shell_run() {
             set_cursor_pos(prompt_start_vga_pos + cursor_index);
             continue;
         }
-
         if (c == KEY_ENTER) {
             input[idx] = '\0';
             putchar('\n');
             add_history(input);
             shell_execute(input);
-
             if (get_cursor() % get_screen_width() != 0) {
                 putchar('\n');
             }
-
             idx = 0;
             cursor_index = 0;
             input[0] = '\0';
-
             print_prompt();
             prompt_start_vga_pos = get_cursor();
             continue;
         }
         if (c == KEY_BACKSPACE) {
             if (cursor_index > 0) {
-
                 for (int i = cursor_index - 1; i < idx; i++) {
                     input[i] = input[i + 1];
                 }
                 idx--;
                 cursor_index--;
                 input[idx] = '\0';
-
                 clear_input_line(get_screen_width());
-
                 set_cursor_pos(prompt_start_vga_pos);
                 print(input);
-
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
             }
             continue;
         }
         if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
-
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
             input[cursor_index] = (char)c;
             idx++;
             cursor_index++;
             input[idx] = '\0';
-
             clear_input_line(get_screen_width());
-
             set_cursor_pos(prompt_start_vga_pos);
             print(input);
-
             set_cursor_pos(prompt_start_vga_pos + cursor_index);
         }
     }
