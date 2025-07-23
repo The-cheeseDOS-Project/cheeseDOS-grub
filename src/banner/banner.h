@@ -16,14 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef BANNER_H
+#define BANNER_H
 
-#define MAX_CMD_LEN 256
+#include <stdint.h>
 
-void shell_run(void);
-void shell_execute(const char* cmd);
-
-extern const char* banner_ansi;
+extern const uint8_t _binary_src_banner_banner_txt_start[];
+extern const uint8_t _binary_src_banner_banner_txt_end[];
+extern const uint32_t _binary_src_banner_banner_txt_size;
 
 #endif

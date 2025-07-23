@@ -29,7 +29,8 @@ INCLUDES="-Isrc/kernel \
 -Isrc/drivers/keyboard \
 -Isrc/libraries/string \
 -Isrc/calc \
--Isrc/rtc"
+-Isrc/rtc \
+-Isrc/banner"
 
 CFLAGS="-m32 -ffreestanding -O2 -Wall -Wextra \
 -fno-stack-protector -fno-builtin-strcpy -fno-builtin-strncpy \
@@ -56,6 +57,7 @@ OBJS=(
   "$BUILD_DIR/calc.o"
   "$BUILD_DIR/string.o"
   "$BUILD_DIR/rtc.o"
+  "$BUILD_DIR/banner.o"
 )
 
 build_object() {
@@ -63,8 +65,7 @@ build_object() {
 }
 
 function all {
-  podman rm --force cheesedos-builder &>/dev/null || true
-  podman build --no-cache -t cheesedos-build src/build
+  podman build -t cheesedos-build src/build
   podman run --name cheesedos-builder --rm -v "$(pwd)":/src:z -w /src cheesedos-build bash "$0" build
 }
 
@@ -81,6 +82,9 @@ function build {
   build_object src/calc/calc.c "$BUILD_DIR/calc.o"
   build_object src/libraries/string/string.c "$BUILD_DIR/string.o"
   build_object src/rtc/rtc.c "$BUILD_DIR/rtc.o"
+
+  objcopy -I binary -O elf32-i386 -B i386 \
+          src/banner/banner.txt "$BUILD_DIR/banner.o"
 
   $LD $LDFLAGS -o "$KERNEL" "${OBJS[@]}"
   strip -sv "$KERNEL"

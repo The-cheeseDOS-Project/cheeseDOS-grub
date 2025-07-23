@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
- 
+
 #include "shell.h"
 #include "vga.h"
 #include "keyboard.h"
 #include "ramdisk.h"
 #include "calc.h"
 #include "string.h"
+#include "banner.h"
+#include "rtc.h"
 #include <stddef.h>
 #include <stdint.h>
-
-#include "rtc.h"
 
 #define INPUT_BUF_SIZE 256
 #define HISTORY_SIZE 32
@@ -60,7 +60,7 @@ static void print_uint(uint32_t num) {
 }
 
 static void print_prompt() {
-    set_text_color(COLOR_YELLOW, COLOR_BLACK);
+    set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK);
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (dir) {
         char path[INPUT_BUF_SIZE];
@@ -73,7 +73,7 @@ static void print_prompt() {
         print("/");
     }
 
-    set_text_color(COLOR_CYAN, COLOR_BLACK);
+    set_text_color(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print("> ");
 
     set_text_color(default_text_fg_color, default_text_bg_color);
@@ -98,18 +98,18 @@ static void add_history(const char *cmd) {
 
 static void clear_input_line(int len) {
     vga_clear_chars(prompt_start_vga_pos, len);
-    set_cursor_pos(prompt_start_vga_pos); 
+    set_cursor_pos(prompt_start_vga_pos);
 }
 
 static void load_history_line(char *input, int *idx, int *cursor_index, int pos) {
     if (pos < 0 || pos >= history_count) return;
-    clear_input_line(get_screen_width()); 
+    clear_input_line(get_screen_width());
     kstrncpy(input, history[pos], INPUT_BUF_SIZE - 1);
     input[INPUT_BUF_SIZE - 1] = '\0';
     *idx = kstrlen(input);
     *cursor_index = *idx;
-    set_cursor_pos(prompt_start_vga_pos); 
-    print(input); 
+    set_cursor_pos(prompt_start_vga_pos);
+    print(input);
 }
 
 static ramdisk_inode_t *ramdisk_find_inode_by_name(ramdisk_inode_t *dir, const char *name) {
@@ -178,6 +178,168 @@ static void handle_rtc_command() {
     print("\n");
 }
 
+static uint8_t ansi_to_vga_color(int ansi_color) {
+    switch (ansi_color) {
+
+        case 30: return COLOR_BLACK;
+        case 31: return COLOR_RED;
+        case 32: return COLOR_GREEN;
+        case 33: return COLOR_BROWN; 
+        case 34: return COLOR_BLUE;
+        case 35: return COLOR_MAGENTA;
+        case 36: return COLOR_CYAN;
+        case 37: return COLOR_LIGHT_GREY; 
+
+        case 90: return COLOR_DARK_GREY; 
+        case 91: return COLOR_LIGHT_RED;
+        case 92: return COLOR_LIGHT_GREEN;
+        case 93: return COLOR_LIGHT_BROWN; 
+        case 94: return COLOR_LIGHT_BLUE;
+        case 95: return COLOR_LIGHT_MAGENTA;
+        case 96: return COLOR_LIGHT_CYAN;
+        case 97: return COLOR_WHITE; 
+        default: return COLOR_LIGHT_GREY; 
+    }
+}
+
+static uint8_t ansi_bg_to_vga_color(int ansi_color) {
+    switch (ansi_color) {
+
+        case 40: return COLOR_BLACK;
+        case 41: return COLOR_RED;
+        case 42: return COLOR_GREEN;
+        case 43: return COLOR_BROWN;
+        case 44: return COLOR_BLUE;
+        case 45: return COLOR_MAGENTA;
+        case 46: return COLOR_CYAN;
+        case 47: return COLOR_LIGHT_GREY;
+
+        case 100: return COLOR_DARK_GREY; 
+        case 101: return COLOR_LIGHT_RED;
+        case 102: return COLOR_LIGHT_GREEN;
+        case 103: return COLOR_LIGHT_BROWN;
+        case 104: return COLOR_LIGHT_BLUE;
+        case 105: return COLOR_LIGHT_MAGENTA;
+        case 106: return COLOR_LIGHT_CYAN;
+        case 107: return COLOR_WHITE;
+        default: return COLOR_BLACK; 
+    }
+}
+
+static void print_ansi(const char* ansi_str) {
+    uint8_t current_fg = COLOR_WHITE;
+    uint8_t current_bg = COLOR_BLACK;
+    set_text_color(current_fg, current_bg);
+
+    while (*ansi_str) {
+        if (*ansi_str == '\033' && *(ansi_str + 1) == '[') {
+            ansi_str += 2; 
+            int code_val = 0;
+            int attribute_count = 0;
+            int attributes[5]; 
+
+            for (int i = 0; i < 5; i++) {
+                attributes[i] = 0;
+            }
+
+            while (*ansi_str >= '0' && *ansi_str <= '9') {
+                code_val = code_val * 10 + (*ansi_str - '0');
+                ansi_str++;
+            }
+
+            if (*ansi_str == ';') {
+                attributes[attribute_count++] = code_val;
+                code_val = 0;
+                ansi_str++; 
+                while (*ansi_str != 'm' && *ansi_str != '\0') {
+                    if (*ansi_str >= '0' && *ansi_str <= '9') {
+                        code_val = code_val * 10 + (*ansi_str - '0');
+                    } else if (*ansi_str == ';') {
+                        if (attribute_count < 5) attributes[attribute_count++] = code_val;
+                        code_val = 0;
+                    }
+                    ansi_str++;
+                }
+                if (attribute_count < 5) attributes[attribute_count++] = code_val; 
+            } else if (*ansi_str == 'm') {
+                if (attribute_count < 5) attributes[attribute_count++] = code_val;
+            }
+
+            if (*ansi_str == 'm') {
+
+                for (int i = 0; i < attribute_count; i++) {
+                    int attr = attributes[i];
+
+                    if (attr == 0) { 
+                        current_fg = COLOR_LIGHT_GREY; 
+                        current_bg = COLOR_BLACK;
+                    } else if (attr == 1) { 
+
+                    } else if (attr == 5) { 
+
+                    } else if (attr == 7) { 
+                        uint8_t temp = current_fg;
+                        current_fg = current_bg;
+                        current_bg = temp;
+                    } else if (attr == 8) { 
+                        current_fg = current_bg;
+                    } else if (attr >= 30 && attr <= 37) { 
+                        current_fg = ansi_to_vga_color(attr);
+                    } else if (attr >= 40 && attr <= 47) { 
+                        current_bg = ansi_bg_to_vga_color(attr);
+                    } else if (attr >= 90 && attr <= 97) { 
+                        current_fg = ansi_to_vga_color(attr); 
+                    } else if (attr >= 100 && attr <= 107) { 
+                        current_bg = ansi_bg_to_vga_color(attr); 
+                    } else if (attr == 25) { 
+
+                    } else if (attr == 27) { 
+
+                    } else if (attr == 28) { 
+
+                    }
+                }
+                set_text_color(current_fg, current_bg);
+                ansi_str++; 
+            } else if (*ansi_str == 's') { 
+                ansi_str++; 
+            } else if (*ansi_str == 'u') { 
+                ansi_str++; 
+            } else {
+
+                while (*ansi_str != 'm' && *ansi_str != '\0') {
+                    ansi_str++;
+                }
+                if (*ansi_str == 'm') ansi_str++;
+            }
+        } else {
+
+            putchar(*ansi_str);
+            ansi_str++;
+        }
+    }
+}
+
+static void ban(const char* args) {
+    (void)args; 
+    clear_screen();
+    set_cursor_pos(0); 
+
+    print_ansi((const char*)_binary_src_banner_banner_txt_start);
+
+    set_text_color(default_text_fg_color, default_text_bg_color);
+
+    int key;
+    print("\nPress 'e' to exit to shell");
+    while (1) {
+        key = keyboard_getchar();
+        if (key == 'e' || key == 'E') {
+            clear_screen();
+            break;
+        }
+    }
+}
+
 typedef void (*command_func_t)(const char* args);
 
 typedef struct {
@@ -187,7 +349,7 @@ typedef struct {
 
 static void hlp(const char* args) {
     (void)args;
-    print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc, clr\n");
+    print("Commands: hlp, cls, say, ver, hi, ls, see, add, rem, mkd, cd, sum, rtc, clr, ban");
 }
 
 static void ver(const char* args) {
@@ -218,7 +380,7 @@ static void ls(const char* args) {
     (void)args;
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to get directory inode\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -228,7 +390,7 @@ static void ls(const char* args) {
 
 static void see(const char* args) {
     if (!args) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: see <filename>\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -236,20 +398,20 @@ static void see(const char* args) {
     const char *filename = args;
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("File not found\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     if (file->type == RAMDISK_INODE_TYPE_DIR) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Cannot see directory\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -257,7 +419,7 @@ static void see(const char* args) {
     char buf[256];
     int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
     if (read < 0) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Error reading file\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -269,7 +431,7 @@ static void see(const char* args) {
 
 static void add(const char* args) {
     if (!args) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: add <filename> \"text to add\"\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -280,7 +442,7 @@ static void add(const char* args) {
         if (res == 0) {
             print("File created\n");
         } else {
-            set_text_color(COLOR_RED, COLOR_BLACK);
+            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
             print("Failed to create file\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
         }
@@ -305,7 +467,7 @@ static void add(const char* args) {
 
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -314,14 +476,14 @@ static void add(const char* args) {
     if (!file) {
         int res = ramdisk_create_file(current_dir_inode_no, filename);
         if (res != 0) {
-            set_text_color(COLOR_RED, COLOR_BLACK);
+            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
             print("Failed to create file\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
             return;
         }
         file = ramdisk_find_inode_by_name(dir, filename);
         if (!file) {
-            set_text_color(COLOR_RED, COLOR_BLACK);
+            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
             print("File creation error\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
             return;
@@ -352,7 +514,7 @@ static void add(const char* args) {
         new_content[new_len + text_len2] = '\0';
         new_len += text_len2;
     } else {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Text too long to append\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -360,7 +522,7 @@ static void add(const char* args) {
 
     int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
     if (write_res < 0) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to write to file\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -371,7 +533,7 @@ static void add(const char* args) {
 
 static void rem(const char* args) {
     if (!args) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: rem <filename>\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -380,7 +542,7 @@ static void rem(const char* args) {
     if (res == 0) {
         print("File removed\n");
     } else {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to remove file\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
     }
@@ -388,7 +550,7 @@ static void rem(const char* args) {
 
 static void mkd(const char* args) {
     if (!args) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: mkd <dirname>\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -397,7 +559,7 @@ static void mkd(const char* args) {
     if (res == 0) {
         print("Directory created\n");
     } else {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to create directory\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
     }
@@ -405,7 +567,7 @@ static void mkd(const char* args) {
 
 static void cd(const char* args) {
     if (!args) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Usage: cd <dirname>\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -421,14 +583,14 @@ static void cd(const char* args) {
     }
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to get current directory\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
     ramdisk_inode_t *new_dir = ramdisk_find_inode_by_name(dir, dirname);
     if (!new_dir || new_dir->type != RAMDISK_INODE_TYPE_DIR) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Directory not found\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
@@ -442,42 +604,61 @@ static void rtc(const char* args) {
 }
 
 void clr(const char* arg) {
-    uint8_t new_fg_color = default_text_fg_color;
+// TODO: Make clr work with the new VGA driver
+    print("Im working on getting clr working again with the new VGA driver :)\n"); // Remove when done
+    print("Left by Connor Thomson on Jul 22, 2025\n"); // Remove when done
+    print("<bluMATRIKZ@gmail.com>\n"); // Remove when done
+//    uint8_t new_fg_color = default_text_fg_color;
 
-    if (!arg || kstrcmp(arg, "hlp") == 0) {
-        set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
-        set_text_color(COLOR_GREEN, COLOR_BLACK);    print("green\n");
-        set_text_color(COLOR_CYAN, COLOR_BLACK);     print("cyan\n");
-        set_text_color(COLOR_RED, COLOR_BLACK);      print("red\n");
-        set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
-        set_text_color(COLOR_YELLOW, COLOR_BLACK);  print("yellow\n");
-        set_text_color(COLOR_WHITE, COLOR_BLACK);    print("white\n");
-        set_text_color(default_text_fg_color, default_text_bg_color);
-        return;
+//    if (!arg || kstrcmp(arg, "hlp") == 0) {
+//        set_text_color(COLOR_BLUE, COLOR_BLACK);    print("blue\n");
+//        set_text_color(COLOR_LIGHT_BLUE, COLOR_BLACK); print("lightblue\n");
+//        set_text_color(COLOR_GREEN, COLOR_BLACK);    print("green\n");
+//        set_text_color(COLOR_LIGHT_GREEN, COLOR_BLACK); print("lightgreen\n");
+//        set_text_color(COLOR_CYAN, COLOR_BLACK);     print("cyan\n");
+//        set_text_color(COLOR_LIGHT_CYAN, COLOR_BLACK);  print("lightcyan\n");
+//        set_text_color(COLOR_RED, COLOR_BLACK);      print("red\n");
+//        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);   print("lightred\n");
+//        set_text_color(COLOR_MAGENTA, COLOR_BLACK); print("magenta\n");
+//        set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK); print("lightmagenta\n");
+//        set_text_color(COLOR_BROWN, COLOR_BLACK);  print("yellow\n");
+//        set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK); print("lightyellow\n");
+//        set_text_color(COLOR_DARK_GREY, COLOR_BLACK); print("darkgrey\n");
+//        set_text_color(COLOR_LIGHT_GREY, COLOR_BLACK); print("lightgrey\n");
+//        set_text_color(COLOR_WHITE, COLOR_BLACK);    print("white\n");
+//        return;
+//    }
+
+//    if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
+//    else if (kstrcmp(arg, "grey") == 0) new_fg_color = COLOR_LIGHT_GREY;
+//    else if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
+//    else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
+//    else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
+//    else if (kstrcmp(arg, "red") == 0) new_fg_color = COLOR_RED;
+//    else if (kstrcmp(arg, "magenta") == 0) new_fg_color = COLOR_MAGENTA;
+//    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_BROWN;
+//    else if (kstrcmp(arg, "lightblue") == 0) new_fg_color = COLOR_LIGHT_BLUE;
+//    else if (kstrcmp(arg, "lightgreen") == 0) new_fg_color = COLOR_LIGHT_GREEN;
+//    else if (kstrcmp(arg, "lightcyan") == 0) new_fg_color = COLOR_LIGHT_CYAN;
+//    else if (kstrcmp(arg, "lightred") == 0) new_fg_color = COLOR_LIGHT_RED;
+//    else if (kstrcmp(arg, "lightmagenta") == 0) new_fg_color = COLOR_LIGHT_MAGENTA;
+//    else if (kstrcmp(arg, "lightyellow") == 0) new_fg_color = COLOR_LIGHT_BROWN;
+//    else if (kstrcmp(arg, "lightwhite") == 0) new_fg_color = COLOR_WHITE;
+//    else if (kstrcmp(arg, "darkgrey") == 0) new_fg_color = COLOR_DARK_GREY;
+//    else {
+//        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+//        print("Invalid color. Use 'clr hlp' for options.\n");
+//        set_text_color(default_text_fg_color, default_text_bg_color);
+//        return;
+//    }
+
+//    default_text_fg_color = new_fg_color;
+//    default_text_bg_color = COLOR_BLACK;
+
+//    set_text_color(default_text_fg_color, default_text_bg_color);
+//    clear_screen();
+//    print("Color set.\n");
     }
-
-    if (kstrcmp(arg, "white") == 0) new_fg_color = COLOR_WHITE;
-    else if (kstrcmp(arg, "grey") == 0) new_fg_color = COLOR_WHITE;
-    else if (kstrcmp(arg, "blue") == 0) new_fg_color = COLOR_BLUE;
-    else if (kstrcmp(arg, "green") == 0) new_fg_color = COLOR_GREEN;
-    else if (kstrcmp(arg, "cyan") == 0) new_fg_color = COLOR_CYAN;
-    else if (kstrcmp(arg, "red") == 0) new_fg_color = COLOR_RED;
-    else if (kstrcmp(arg, "magenta") == 0) new_fg_color = COLOR_MAGENTA;
-    else if (kstrcmp(arg, "yellow") == 0) new_fg_color = COLOR_YELLOW;
-    else {
-        set_text_color(COLOR_RED, COLOR_BLACK);
-        print("Invalid color. Use 'clr hlp' for options.\n");
-        set_text_color(default_text_fg_color, default_text_bg_color);
-        return;
-    }
-
-    default_text_fg_color = new_fg_color;
-    default_text_bg_color = COLOR_BLACK;
-
-    set_text_color(default_text_fg_color, default_text_bg_color);
-    clear_screen();
-    print("Color set.\n");
-}
 
 static shell_command_t commands[] = {
     {"hlp", hlp},
@@ -494,6 +675,7 @@ static shell_command_t commands[] = {
     {"cd", cd},
     {"rtc", rtc},
     {"clr", clr},
+    {"ban", ban},
     {NULL, NULL}
 };
 
@@ -526,7 +708,7 @@ void shell_execute(const char* cmd) {
     }
 
     if (!found) {
-        set_text_color(COLOR_RED, COLOR_BLACK);
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print(cmd);
         print(": command not found\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
@@ -538,7 +720,7 @@ void shell_run() {
     int idx = 0;
     int cursor_index = 0;
 
-    print_prompt(); 
+    print_prompt();
     prompt_start_vga_pos = get_cursor();
 
     while (1) {
@@ -577,7 +759,7 @@ void shell_run() {
                 load_history_line(input, &idx, &cursor_index, history_view_pos);
             } else {
 
-                clear_input_line(get_screen_width()); 
+                clear_input_line(get_screen_width());
                 idx = 0;
                 cursor_index = 0;
                 input[0] = '\0';
@@ -599,7 +781,7 @@ void shell_run() {
 
         if (c == KEY_ENTER) {
             input[idx] = '\0';
-            putchar('\n'); 
+            putchar('\n');
             add_history(input);
             shell_execute(input);
 
@@ -611,8 +793,8 @@ void shell_run() {
             cursor_index = 0;
             input[0] = '\0';
 
-            print_prompt(); 
-            prompt_start_vga_pos = get_cursor(); 
+            print_prompt();
+            prompt_start_vga_pos = get_cursor();
             continue;
         }
         if (c == KEY_BACKSPACE) {
@@ -623,31 +805,31 @@ void shell_run() {
                 }
                 idx--;
                 cursor_index--;
-                input[idx] = '\0'; 
+                input[idx] = '\0';
 
-                clear_input_line(get_screen_width()); 
+                clear_input_line(get_screen_width());
 
-                set_cursor_pos(prompt_start_vga_pos); 
-                print(input); 
+                set_cursor_pos(prompt_start_vga_pos);
+                print(input);
 
                 set_cursor_pos(prompt_start_vga_pos + cursor_index);
             }
             continue;
         }
-        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) { 
+        if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
 
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
             input[cursor_index] = (char)c;
             idx++;
             cursor_index++;
-            input[idx] = '\0'; 
+            input[idx] = '\0';
 
-            clear_input_line(get_screen_width()); 
+            clear_input_line(get_screen_width());
 
             set_cursor_pos(prompt_start_vga_pos);
             print(input);
 
-            set_cursor_pos(prompt_start_vga_pos + cursor_index); 
+            set_cursor_pos(prompt_start_vga_pos + cursor_index);
         }
     }
 }
