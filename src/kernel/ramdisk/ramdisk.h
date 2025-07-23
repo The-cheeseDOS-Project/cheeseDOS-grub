@@ -23,6 +23,7 @@
 #include <stddef.h>
 
 #define RAMDISK_FILENAME_MAX 32
+#define RAMDISK_DATA_SIZE_BYTES 48
 
 typedef enum {
     RAMDISK_INODE_TYPE_UNUSED = 0,
@@ -36,7 +37,7 @@ typedef struct {
     uint32_t size;
     uint32_t parent_inode_no;
     char name[RAMDISK_FILENAME_MAX];
-    uint8_t *data;
+    uint8_t data[RAMDISK_DATA_SIZE_BYTES];
 } ramdisk_inode_t;
 
 void ramdisk_init();

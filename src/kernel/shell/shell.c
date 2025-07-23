@@ -382,6 +382,7 @@ static void see(const char* args) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
+
     char buf[2048];
     int read = ramdisk_readfile(file, 0, sizeof(buf) - 1, buf);
     if (read < 0) {
@@ -391,37 +392,59 @@ static void see(const char* args) {
         return;
     }
     buf[read] = 0;
+
     print(buf);
     print("\n");
 }
 
-
 static void add(const char* args) {
-    print("`add` is broken right now :(\n"); // Remove when fixed
-    print("Left by Connor Thomson on Jul 22, 2025\n"); // Remove when fixed
-    print("<bluMATRIKZ@gmail.com>"); // Remove when fixed
-// TODO: Fix add command so it does not only put 4 things in the file
-/*
     if (!args) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Usage: add <filename> [text to add]\n");
+        print("Usage: add <filename> <text_to_add>\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-    const char *space_pos = kstrchr(args, ' ');
-    char filename[INPUT_BUF_SIZE];
-    const char *text_to_add = "";
-    if (space_pos) {
-        size_t filename_len = (size_t)(space_pos - args);
-        if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
-        kstrncpy(filename, args, filename_len);
-        filename[filename_len] = '\0';
-        text_to_add = space_pos + 1;
-        while (*text_to_add == ' ') text_to_add++;
-    } else {
-        kstrncpy(filename, args, INPUT_BUF_SIZE - 1);
-        filename[INPUT_BUF_SIZE - 1] = '\0';
+
+    char filename[RAMDISK_FILENAME_MAX];
+    const char *text_to_add = NULL;
+    size_t args_len = kstrlen(args);
+
+    const char *space_pos = NULL;
+    for (size_t i = 0; i < args_len; ++i) {
+        if (args[i] == ' ') {
+            space_pos = &args[i];
+            break;
+        }
     }
+
+    if (space_pos) {
+        size_t filename_len = space_pos - args;
+        if (filename_len >= RAMDISK_FILENAME_MAX) {
+            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+            print("Error: Filename too long (max 27 characters).\n");
+            set_text_color(default_text_fg_color, default_text_bg_color);
+            return;
+        }
+        for (size_t i = 0; i < filename_len; ++i) {
+            filename[i] = args[i];
+        }
+        filename[filename_len] = '\0';
+
+        text_to_add = space_pos + 1;
+        while (*text_to_add == ' ') {
+            text_to_add++;
+        }
+        if (*text_to_add == '\0') {
+            text_to_add = NULL;
+        }
+    } else {
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Usage: add <filename> <text_to_add>\n");
+        print("Error: No text to add provided.\n");
+        set_text_color(default_text_fg_color, default_text_bg_color);
+        return;
+    }
+
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
     if (!dir) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
@@ -429,6 +452,7 @@ static void add(const char* args) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
+
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
         if (ramdisk_create_file(current_dir_inode_no, filename) != 0) {
@@ -440,45 +464,64 @@ static void add(const char* args) {
         file = ramdisk_find_inode_by_name(dir, filename);
         if (!file) {
             set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-            print("File creation error\n");
+            print("Error: Could not retrieve newly created file.\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
             return;
         }
     }
-    char new_content[4096];
+    if (file->type == RAMDISK_INODE_TYPE_DIR) {
+        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Cannot add text to a directory.\n");
+        set_text_color(default_text_fg_color, default_text_bg_color);
+        return;
+    }
+
+    char new_content[RAMDISK_DATA_SIZE_BYTES + 1];
     size_t content_length = 0;
-    int bytes_read = ramdisk_readfile(file, 0, sizeof(new_content) - 1, new_content);
+
+    int bytes_read = ramdisk_readfile(file, 0, RAMDISK_DATA_SIZE_BYTES, new_content);
     if (bytes_read > 0) {
         content_length = bytes_read;
         new_content[content_length] = '\0';
+
         if (content_length > 0 && new_content[content_length - 1] != '\n') {
-            if (content_length < sizeof(new_content) - 1) {
+            if (content_length < RAMDISK_DATA_SIZE_BYTES) {
                 new_content[content_length++] = '\n';
+                new_content[content_length] = '\0';
             }
         }
     }
-    size_t text_len = kstrlen(text_to_add);
-    if (text_len > 0) {
-        if (content_length + text_len < sizeof(new_content)) {
-            kstrcpy(new_content + content_length, text_to_add);
-            content_length += text_len;
-        } else {
+
+    if (text_to_add) {
+        size_t text_len = kstrlen(text_to_add);
+        if (content_length + text_len >= RAMDISK_DATA_SIZE_BYTES) {
             set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-            print("Error: Text too large for buffer\n");
+            print("Error: Combined text would exceed maximum file size (");
+            print_uint(RAMDISK_DATA_SIZE_BYTES);
+            print(" bytes).\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
             return;
         }
+        kstrcpy(new_content + content_length, text_to_add);
+        content_length += text_len;
+    } else {
+        if (content_length == 0) {
+             set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK);
+             print("Warning: No text provided and file was empty. File created but no content added.\n");
+             set_text_color(default_text_fg_color, default_text_bg_color);
+             return;
+        }
     }
+
     if (ramdisk_writefile(file, 0, content_length, new_content) < 0) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to write to file\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-    print("Text successfully added to file\n");
-*/
-}
 
+    print("Text successfully added to file\n");
+}
 
 static void rem(const char* args) {
     if (!args) {
@@ -570,7 +613,7 @@ static void clr(const char* arg) {
         set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK); print("lightmagenta\n");
         set_text_color(COLOR_LIGHT_BROWN, COLOR_BLACK); print("lightbrown\n");
         set_text_color(COLOR_WHITE, COLOR_BLACK);       print("white\n");
-        set_text_color(default_text_fg_color, default_text_bg_color); 
+        set_text_color(default_text_fg_color, default_text_bg_color);
         print("\nUsage: clr <color>\n");
         return;
     }
