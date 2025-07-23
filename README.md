@@ -44,8 +44,8 @@ Compiling cheeseDOS alpha Build: [25t8sL](https://github.com/The-cheeseDOS-Proje
 
 | Component   | Requirement                                                        |
 |-------------|--------------------------------------------------------------------|
-| Processor   | i486 (i386SX should work but not tested) or newer x86-compatible processor (including x86_64) |
-| Memory      | 2MB or higher                                                      |
+| Processor   | i386SX or newer x86-compatible processor (including x86_64) |
+| Memory      | 3MB or higher                                                      |
 | Keyboard    | PS/2 QWERTY keyboard (Some USB keyboards may not work)             |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
 

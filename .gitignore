@@ -32,3 +32,7 @@ Thumbs.db
 core
 .vscode/
 .idea/
+notes*
+todo*
+NOTES*
+TODO*
