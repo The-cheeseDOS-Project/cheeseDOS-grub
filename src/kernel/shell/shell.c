@@ -432,37 +432,21 @@ static void see(const char* args) {
 static void add(const char* args) {
     if (!args) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Usage: add <filename> \"text to add\"\n");
+        print("Usage: add <filename> [text to add]\n");
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
-    const char *space_pos = kstrchr(args, ' ');
-    if (!space_pos) {
-        int res = ramdisk_create_file(current_dir_inode_no, args);
-        if (res == 0) {
-            print("File created\n");
-        } else {
-            set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-            print("Failed to create file\n");
-            set_text_color(default_text_fg_color, default_text_bg_color);
-        }
-        return;
-    }
-    size_t filename_len = (size_t)(space_pos - args);
-    char filename[INPUT_BUF_SIZE];
-    if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
-    kstrncpy(filename, args, filename_len);
-    filename[filename_len] = '\0';
 
-    const char *text_start = space_pos + 1;
-    char text[INPUT_BUF_SIZE];
-    size_t text_len = kstrlen(text_start);
-    if (text_start[0] == '"' && text_start[text_len - 1] == '"') {
-        kstrncpy(text, text_start + 1, text_len - 2);
-        text[text_len - 2] = '\0';
+    const char *filename_end = kstrchr(args, ' ');
+    char filename[INPUT_BUF_SIZE];
+    if (filename_end) {
+        size_t filename_len = (size_t)(filename_end - args);
+        if (filename_len >= INPUT_BUF_SIZE) filename_len = INPUT_BUF_SIZE - 1;
+        kstrncpy(filename, args, filename_len);
+        filename[filename_len] = '\0';
     } else {
-        kstrncpy(text, text_start, INPUT_BUF_SIZE - 1);
-        text[INPUT_BUF_SIZE - 1] = '\0';
+        kstrncpy(filename, args, INPUT_BUF_SIZE - 1);
+        filename[INPUT_BUF_SIZE - 1] = '\0';
     }
 
     ramdisk_inode_t *dir = ramdisk_iget(current_dir_inode_no);
@@ -472,6 +456,7 @@ static void add(const char* args) {
         set_text_color(default_text_fg_color, default_text_bg_color);
         return;
     }
+    
     ramdisk_inode_t *file = ramdisk_find_inode_by_name(dir, filename);
     if (!file) {
         int res = ramdisk_create_file(current_dir_inode_no, filename);
@@ -487,40 +472,74 @@ static void add(const char* args) {
             print("File creation error\n");
             set_text_color(default_text_fg_color, default_text_bg_color);
             return;
-            }
+        }
     }
 
-    char old_content[1024];
+    char old_content[2048];
     int old_len = ramdisk_readfile(file, 0, sizeof(old_content) - 1, old_content);
     if (old_len < 0) old_len = 0;
     old_content[old_len] = '\0';
 
-    char new_content[2048];
-
+    char new_content[2048]; 
     kstrncpy(new_content, old_content, sizeof(new_content) - 1);
     new_content[sizeof(new_content) - 1] = '\0';
-    size_t new_len = kstrlen(new_content);
+    size_t current_content_len = kstrlen(new_content);
 
-    if (new_len > 0 && new_content[new_len - 1] != '\n' && new_len + 1 < sizeof(new_content)) {
-        new_content[new_len] = '\n';
-        new_content[new_len + 1] = '\0';
-        new_len++;
+    if (filename_end) { 
+        const char *text_ptr = filename_end + 1; 
+        
+        char buffer[INPUT_BUF_SIZE];
+        size_t buffer_len;
+        const char *word_start;
+
+        while (*text_ptr != '\0') {
+            while (*text_ptr == ' ') { 
+                text_ptr++;
+            }
+            if (*text_ptr == '\0') break; 
+
+            word_start = text_ptr;
+            while (*text_ptr != ' ' && *text_ptr != '\0') {
+                text_ptr++;
+            }
+            buffer_len = (size_t)(text_ptr - word_start);
+            
+            if (buffer_len >= INPUT_BUF_SIZE) buffer_len = INPUT_BUF_SIZE - 1;
+            kstrncpy(buffer, word_start, buffer_len);
+            buffer[buffer_len] = '\0';
+
+            if (current_content_len > 0 && new_content[current_content_len - 1] != '\n') {
+                if (current_content_len + 1 < sizeof(new_content)) {
+                    new_content[current_content_len] = '\n';
+                    new_content[current_content_len + 1] = '\0';
+                    current_content_len++;
+                } else {
+                    set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+                    print("File content too large for buffer\n");
+                    set_text_color(default_text_fg_color, default_text_bg_color);
+                    return;
+                }
+            }
+
+            if (current_content_len + kstrlen(buffer) + 1 <= sizeof(new_content)) { 
+                kstrncpy(new_content + current_content_len, buffer, sizeof(new_content) - current_content_len - 1);
+                current_content_len += kstrlen(buffer);
+                new_content[current_content_len] = '\0'; 
+            } else {
+                set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
+                print("Text too long to append\n");
+                set_text_color(default_text_fg_color, default_text_bg_color);
+                return;
+            }
+        }
+    } else { 
+        if (current_content_len == 0) {
+            print("File created but no content added.\n");
+            return;
+        }
     }
 
-    size_t text_len2 = kstrlen(text);
-
-    if (new_len + text_len2 + 1 <= sizeof(new_content)) {
-        kstrncpy(new_content + new_len, text, sizeof(new_content) - new_len - 1);
-        new_content[new_len + text_len2] = '\0';
-        new_len += text_len2;
-    } else {
-        set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Text too long to append\n");
-        set_text_color(default_text_fg_color, default_text_bg_color);
-        return;
-    }
-
-    int write_res = ramdisk_writefile(file, 0, (uint32_t)new_len, new_content);
+    int write_res = ramdisk_writefile(file, 0, (uint32_t)current_content_len, new_content);
     if (write_res < 0) {
         set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
         print("Failed to write to file\n");
