@@ -784,6 +784,20 @@ void shell_run() {
             }
             continue;
         }
+        if (c == KEY_DELETE) {
+            if (cursor_index < idx) {
+                for (int i = cursor_index; i < idx; i++) {
+                    input[i] = input[i + 1];
+                }
+                idx--;
+                input[idx] = '\0';
+                clear_input_line(get_screen_width());
+                set_cursor_pos(prompt_start_vga_pos);
+                print(input);
+                set_cursor_pos(prompt_start_vga_pos + cursor_index);
+            }
+            continue;
+        }
         if (idx < INPUT_BUF_SIZE - 1 && c >= 32 && c <= 126) {
             for (int i = idx; i > cursor_index; i--) input[i] = input[i - 1];
             input[cursor_index] = (char)c;
