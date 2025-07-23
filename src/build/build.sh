@@ -100,7 +100,6 @@ function build {
 }
 
 function run {
-  all
   qemu-system-i386 -drive file="$ISO",format=raw -m 3M -cpu 486
 }
 
