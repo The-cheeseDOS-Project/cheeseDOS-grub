@@ -32,18 +32,12 @@ permissions:
 
 jobs:
   build_and_release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-          podman
-      
       - name: Build with Podman
         run: |
          sudo chmod +x ./build.sh
@@ -88,3 +82,7 @@ jobs:
           TAG="${{ steps.gentag.outputs.tag }}"
           TITLE="cheeseDOS alpha (build: $TAG)"
           gh release create "$TAG" cdos.iso --title "$TITLE" --notes "Rolling alpha cheeseDOS builds"
+
+      - name: Remove artifacts
+        run: | rm -rf cheeseDOS*
+          
