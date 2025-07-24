@@ -85,4 +85,3 @@ jobs:
 
       - name: Remove artifacts
         run: | rm -rf cheeseDOS*
-          
