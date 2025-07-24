@@ -66,4 +66,4 @@ You can download the latest ISO from the [Releases](https://github.com/The-chees
 - **GPL v3 Licese**: [LICENSE](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/LICENSE)
 - **Security Policy**: [SECURITY.md](https://github.com/The-cheeseDOS-Project/cheeseDOS/blob/main/SECURITY.md)
 
-Local mirror: http://cheesedos.h4ck.me
+(Local mirror)[https://cheesedos.h4ck.me]
