@@ -5,25 +5,8 @@
 
 cheeseDOS is a fully GNU GPLed, custom C written, super small, under 800KB live CLI based DOS like OS that loads into RAM.
 
-```
-/> hlp
-Commands: hlp, cls, say, ver, hi, Is, see, add, rem, mkd, cd, sum, rtc
-/> say whoah thats alot of commands
-whoah thats alot of commands
-/> sum 10×10
-100
-/> say that is a big number there!
-that is a big number there!
-/> add hi hello hello
-Text added
-/> see hi
-hello hello
-/> hi
-Hello, world!
-/> ver
-cheeseDOS alpha
-/>
-```
+![cheeseDOS on the Compaq Deskpro 386](https://github.com/user-attachments/assets/0ea09c6f-7a9a-4148-b9c6-9d8251c6ec9b)
+
 
 ## CheeseDOS Features
 
