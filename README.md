@@ -28,7 +28,7 @@ cheeseDOS alpha
 ## CheeseDOS Features
 
 - 512B CheeseFS RAM Disk
-- Run's on computers from 1985 (if they have a 386 and 2MB RAM) and onwards
+- Run's on computers from 1986 (if they have a 386 and 3MB RAM) and onwards
 - Quite a bit of commands
 - AND MORE!
 
@@ -44,7 +44,7 @@ Compiling cheeseDOS alpha Build: [25t8sL](https://github.com/The-cheeseDOS-Proje
 
 | Component   | Requirement                                                        |
 |-------------|--------------------------------------------------------------------|
-| Processor   | i386SX or newer x86-compatible processor (including x86_64) |
+| Processor   | i386 or newer x86-compatible processor (including x86_64) |
 | Memory      | 3MB or higher                                                      |
 | Keyboard    | PS/2 QWERTY keyboard (Some USB keyboards may not work)             |
 | Firmware    | Legacy BIOS only (UEFI is not supported)                           |
