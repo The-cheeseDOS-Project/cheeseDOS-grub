@@ -33,7 +33,7 @@
 #define RTC_STATUS_B      0x0B
 #define RTC_CENTURY       0x32
 
-#define TIMEZONE_OFFSET   17
+#define TIMEZONE_OFFSET   0
 
 static uint8_t get_rtc_register(uint8_t reg) {
     outb(CMOS_ADDRESS, reg);
