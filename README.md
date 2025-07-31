@@ -20,10 +20,6 @@ cheeseDOS is a x86, fully GNU GPLed, custom C written, super small, under 800KB 
 
 For instructions on building from source, refer to the [Build and Run Guide](https://github.com/The-cheeseDOS-Project/cheeseDOS/wiki/Build-and-Run).
 
-Compiling cheeseDOS alpha Build: [25t8sL](https://github.com/The-cheeseDOS-Project/cheeseDOS/releases/tag/25t8sL) on [Fedora 42](https://fedoramagazine.org/announcing-fedora-linux-42): [Click to watch!](https://github.com/user-attachments/assets/8269e284-b7c4-4d1f-acf5-ecaaa48e218d)
-
-[![Click to watch video](link-to-your-thumbnail-image.jpg)](https://github.com/user-attachments/assets/8269e284-b7c4-4d1f-acf5-ecaaa48e218d)
-
 ## System Requirements (for booting on real hardware)
 
 | Component   | Requirement                                                        |
