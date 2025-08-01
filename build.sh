@@ -130,7 +130,7 @@ function deps {
     echo "Detected Gentoo-based system. Installing dependencies..."
     $SU emerge --sync && $SU emerge dev-vcs/git app-containers/podman app-emulation/qemu
   else
-    echo "Whoops well I dont really know what package manager is so you will need to install "git podman qemu" by yourself :P"
+    echo "Your distro is not supported by cheeseDOS, please seek: https://github.com/The-cheeseDOS-Project/cheeseDOS/wiki/Build-and-Run#prerequisites"
   fi
 }
 
