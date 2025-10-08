@@ -1,3 +1,2 @@
 # cheeseDOS GRUB
-
-Older cheeseDOS version that uses GNU GRUB
+Last cheeseDOS build to use GRUB
